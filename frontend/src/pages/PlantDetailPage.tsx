@@ -20,6 +20,7 @@ const PlantDetailPage = () => {
 
   const [plant, setPlant] = useState<Plant | null>(null);
   const [events, setEvents] = useState<PlantEvent[]>([]);
+  const [allEvents, setAllEvents] = useState<PlantEvent[]>([]);
   const [photos, setPhotos] = useState<PlantPhoto[]>([]);
   const [eventTypes, setEventTypes] = useState<EventType[]>([]);
   const [selectedEventType, setSelectedEventType] = useState<string>("Water");
@@ -40,7 +41,11 @@ const PlantDetailPage = () => {
 
   useEffect(() => {
     if (id) {
-      fetchEvents(parseInt(id), selectedEventType);
+      if (selectedEventType === "All events") {
+        fetchAllEvents(parseInt(id));
+      } else {
+        fetchEvents(parseInt(id), selectedEventType);
+      }
     }
   }, [id, selectedEventType]);
 
@@ -71,10 +76,26 @@ const PlantDetailPage = () => {
     }
   };
 
+  const fetchAllEvents = async (plantId: number) => {
+    try {
+      const response = await eventsAPI.getByPlantId(plantId);
+      setAllEvents(response.data);
+      setEvents(response.data);
+    } catch (err) {
+      console.error("Failed to load all events");
+    }
+  };
+
   const handleDateClick = (date: Date) => {
+    if (selectedEventType === "All events") {
+      return; // Don't allow adding/removing events in "All events" view
+    }
+
     setSelectedDate(date);
     const dateStr = toISODate(date);
-    const existingEvent = events.find((e) => e.event_date === dateStr);
+    const existingEvent = events.find(
+      (e) => e.event_date === dateStr && e.event_type === selectedEventType
+    );
 
     if (existingEvent) {
       handleDeleteEvent(existingEvent.id!);
@@ -85,6 +106,16 @@ const PlantDetailPage = () => {
 
   const handleAddEvent = async () => {
     if (!id) return;
+
+    const dateStr = toISODate(selectedDate);
+    const existingEvent = events.find(
+      (e) => e.event_date === dateStr && e.event_type === selectedEventType
+    );
+
+    if (existingEvent) {
+      alert(`A ${selectedEventType} event already exists on this date.`);
+      return;
+    }
 
     const newEvent: PlantEvent = {
       plant_id: parseInt(id),
@@ -171,13 +202,52 @@ const PlantDetailPage = () => {
     setEditingPhotoDate("");
   };
 
+  const getValidEvents = (eventsList: PlantEvent[]) => {
+    return eventsList.filter((event) =>
+      eventTypes.some((et) => et.name === event.event_type)
+    );
+  };
+
   const getEventDatesSet = () => {
     return new Set(events.map((e) => e.event_date));
   };
 
   const tileClassName = ({ date }: { date: Date }) => {
     const dateStr = toISODate(date);
-    return getEventDatesSet().has(dateStr) ? "has-event" : "";
+    if (selectedEventType === "All events") {
+      const validEvents = getValidEvents(allEvents);
+      return validEvents.some((e) => e.event_date === dateStr)
+        ? "has-event"
+        : "";
+    }
+    return events.some(
+      (e) => e.event_date === dateStr && e.event_type === selectedEventType
+    )
+      ? "has-event"
+      : "";
+  };
+
+  const tileContent = ({ date }: { date: Date }) => {
+    const dateStr = toISODate(date);
+
+    if (selectedEventType === "All events") {
+      const validEvents = getValidEvents(allEvents);
+      const dayEvents = validEvents.filter((e) => e.event_date === dateStr);
+      if (dayEvents.length > 0) {
+        const emojis = dayEvents.map((event) => {
+          const eventType = eventTypes.find(
+            (et) => et.name === event.event_type
+          );
+          return eventType!.emoji; // We know it exists due to getValidEvents filter
+        });
+
+        return <span className={styles.tileEmoji}>{emojis.join("")}</span>;
+      }
+    } else if (getEventDatesSet().has(dateStr)) {
+      const eventType = getSelectedEventType();
+      return <span className={styles.tileEmoji}>{eventType?.emoji}</span>;
+    }
+    return null;
   };
 
   const getSelectedEventType = () => {
@@ -191,15 +261,10 @@ const PlantDetailPage = () => {
   return (
     <div className={`container ${styles.plantDetailPage}`}>
       <div className="page-header">
+        <button onClick={() => navigate("/")} className="btn btn-secondary">
+          ← Back to List
+        </button>
         <h2>{plant.name}</h2>
-        <div className={styles.headerActions}>
-          <Link to={`/plants/${id}/edit`} className="btn btn-secondary">
-            Edit Plant
-          </Link>
-          <button onClick={() => navigate("/")} className="btn btn-secondary">
-            Back to List
-          </button>
-        </div>
       </div>
 
       <div className={styles.plantDetailLayout}>
@@ -223,6 +288,13 @@ const PlantDetailPage = () => {
           <details className={styles.plantInfoDetails} open>
             <summary>
               <h3>Plant Information</h3>
+              <Link
+                to={`/plants/${id}/edit`}
+                className={styles.editPlantLink}
+                title="Edit Plant"
+              >
+                ✏️
+              </Link>
             </summary>
             <div className={styles.infoContent}>
               <div className={styles.infoRow}>
@@ -359,27 +431,52 @@ const PlantDetailPage = () => {
           <h3>Plant Events</h3>
 
           <div className={styles.eventTypeSelector}>
-            {eventTypes.map((eventType) => (
-              <button
-                key={eventType.id}
-                className={`${styles.eventTypeBtn} ${
-                  selectedEventType === eventType.name ? styles.active : ""
-                }`}
-                onClick={() => setSelectedEventType(eventType.name)}
-              >
-                <span className="emoji">{eventType.emoji}</span>
-                <span className="name">{eventType.name}</span>
-              </button>
-            ))}
+            {[...eventTypes]
+              .sort((a, b) => {
+                // Water first, General Update last, others in between
+                if (a.name === "Water") return -1;
+                if (b.name === "Water") return 1;
+                if (a.name === "General Update") return 1;
+                if (b.name === "General Update") return -1;
+                return 0;
+              })
+              .map((eventType) => (
+                <button
+                  key={eventType.id}
+                  className={`${styles.eventTypeBtn} ${
+                    selectedEventType === eventType.name ? styles.active : ""
+                  }`}
+                  onClick={() => setSelectedEventType(eventType.name)}
+                >
+                  <span className="emoji">{eventType.emoji}</span>
+                  <span className="name">{eventType.name}</span>
+                </button>
+              ))}
+            <button
+              key="all-events"
+              className={`${styles.eventTypeBtn} ${
+                selectedEventType === "All events" ? styles.active : ""
+              }`}
+              onClick={() => setSelectedEventType("All events")}
+            >
+              <span className="emoji">📅</span>
+              <span className="name">All events</span>
+            </button>
           </div>
 
           <div className={styles.calendarContainer}>
             <div className={styles.calendarHeader}>
               <h4>
-                {getSelectedEventType()?.emoji} {selectedEventType} Calendar
+                {selectedEventType === "All events"
+                  ? "📅 All events Calendar"
+                  : `${
+                      getSelectedEventType()?.emoji
+                    } ${selectedEventType} Calendar`}
               </h4>
               <p className={styles.calendarHint}>
-                Click a date to add or remove an event
+                {selectedEventType === "All events"
+                  ? "Viewing all events"
+                  : "Click a date to add or remove an event"}
               </p>
             </div>
 
@@ -388,39 +485,64 @@ const PlantDetailPage = () => {
               onClickDay={handleDateClick}
               value={selectedDate}
               tileClassName={tileClassName}
+              tileContent={tileContent}
               className={styles.reactCalendar}
             />
 
             <div className={styles.eventsList}>
-              <h4>Recent {selectedEventType} Events</h4>
-              {events.length === 0 ? (
-                <p className="text-muted">
-                  No {selectedEventType.toLowerCase()} events yet
-                </p>
-              ) : (
-                <ul>
-                  {events.slice(0, 5).map((event) => (
-                    <li key={event.id}>
-                      <div className={styles.eventItem}>
-                        <span className={styles.eventDate}>
-                          {formatDate(event.event_date)}
-                        </span>
-                        {event.notes && (
-                          <span className={styles.eventNotes}>
-                            {event.notes}
-                          </span>
-                        )}
-                        <button
-                          className="btn-icon"
-                          onClick={() => handleDeleteEvent(event.id!)}
-                        >
-                          ×
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <h4>
+                Recent{" "}
+                {selectedEventType === "All events" ? "" : selectedEventType}{" "}
+                Events
+              </h4>
+              {(() => {
+                const validEvents = getValidEvents(events);
+                return validEvents.length === 0 ? (
+                  <p className="text-muted">
+                    No{" "}
+                    {selectedEventType === "All events"
+                      ? ""
+                      : selectedEventType.toLowerCase()}{" "}
+                    events yet
+                  </p>
+                ) : (
+                  <ul>
+                    {validEvents.slice(0, 5).map((event) => {
+                      const eventTypeObj = eventTypes.find(
+                        (et) => et.name === event.event_type
+                      );
+                      return (
+                        <li key={event.id}>
+                          <div className={styles.eventItem}>
+                            {selectedEventType === "All events" &&
+                              eventTypeObj && (
+                                <span className={styles.eventTypeEmoji}>
+                                  {eventTypeObj.emoji}
+                                </span>
+                              )}
+                            <span className={styles.eventDate}>
+                              {formatDate(event.event_date)}
+                            </span>
+                            {event.notes && (
+                              <span className={styles.eventNotes}>
+                                {event.notes}
+                              </span>
+                            )}
+                            {selectedEventType !== "All events" && (
+                              <button
+                                className="btn-icon"
+                                onClick={() => handleDeleteEvent(event.id!)}
+                              >
+                                ×
+                              </button>
+                            )}
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                );
+              })()}
             </div>
           </div>
         </div>

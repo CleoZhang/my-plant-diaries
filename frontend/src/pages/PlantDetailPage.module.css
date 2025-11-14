@@ -55,10 +55,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-sm);
-  margin: calc(var(--spacing-lg) * -1);
+  padding: 0;
   margin-bottom: var(--spacing-lg);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
 .plantInfoDetails summary::-webkit-details-marker {
@@ -67,6 +65,24 @@
 
 .plantInfoDetails summary h3 {
   margin: 0;
+  flex: 1;
+}
+
+.editPlantLink {
+  font-size: 1.25rem;
+  text-decoration: none;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  opacity: 0.7;
+}
+
+.editPlantLink:hover {
+  opacity: 1;
+  background-color: var(--surface);
+  transform: scale(1.1);
 }
 
 .plantInfoDetails summary::after {
@@ -292,6 +308,16 @@
 .reactCalendar :global(.react-calendar__tile) {
   padding: var(--spacing-md);
   border-radius: var(--radius-sm);
+  position: relative;
+}
+
+.tileEmoji {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  font-size: 0.875rem;
+  line-height: 1;
+  pointer-events: none;
 }
 
 .reactCalendar :global(.react-calendar__tile.has-event) {
@@ -303,9 +329,27 @@
   background-color: var(--primary-color);
 }
 
-.reactCalendar :global(.react-calendar__tile--active) {
-  background-color: var(--primary-color) !important;
+.reactCalendar :global(.react-calendar__tile--now) {
+  border: 2px solid var(--primary-color) !important;
+  background-color: transparent !important;
+}
+
+.reactCalendar :global(.react-calendar__tile--now.has-event) {
+  border: 2px solid var(--primary-color) !important;
+  background-color: var(--primary-light) !important;
   color: white;
+}
+
+.reactCalendar :global(.react-calendar__tile--active) {
+  background-color: transparent !important;
+  color: var(--text-primary) !important;
+  border: 2px dashed var(--primary-color) !important;
+}
+
+.reactCalendar :global(.react-calendar__tile--active.has-event) {
+  background-color: var(--primary-light) !important;
+  color: white !important;
+  border: 2px dashed var(--primary-dark) !important;
 }
 
 .eventsList {
@@ -335,6 +379,10 @@
   padding: var(--spacing-sm) var(--spacing-md);
   background-color: var(--surface);
   border-radius: var(--radius-md);
+}
+
+.eventTypeEmoji {
+  font-size: 1.25rem;
 }
 
 .eventDate {
@@ -400,14 +448,5 @@
 
   .photoGrid {
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  }
-
-  .headerActions {
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .headerActions .btn {
-    width: 100%;
   }
 }

@@ -84,8 +84,8 @@ function initializeDatabase() {
       { name: 'Trim', emoji: '✂️' },
       { name: 'Repot', emoji: '🪴' },
       { name: 'Propagate', emoji: '🌱' },
-      { name: 'General Update', emoji: '📝' },
-      { name: 'New Leaf', emoji: '🍃' }
+      { name: 'New Leaf', emoji: '🍃' },
+      { name: 'General Update', emoji: '📝' }
     ];
 
     const stmt = db.prepare(`
