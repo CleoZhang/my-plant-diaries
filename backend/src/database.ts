@@ -104,7 +104,7 @@ function initializeDatabase() {
       { name: 'Repot', emoji: '🪴' },
       { name: 'Propagate', emoji: '🌱' },
       { name: 'New Leaf', emoji: '🍃' },
-      { name: 'Pest control', emoji: '🐛' },
+      { name: 'Pest Control', emoji: '🐛' },
       { name: 'Root Rot', emoji: '🦠' },
       { name: 'Other', emoji: '📝' }
     ];

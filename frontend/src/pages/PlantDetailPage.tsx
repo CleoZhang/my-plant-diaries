@@ -549,7 +549,7 @@ const PlantDetailPage = () => {
                 className={`${styles.eventTypeBtn} ${
                   selectedEventType === "All events" ? styles.active : ""
                 }`}
-                onClick={() => setSelectedEventType("All efgcvents")}
+                onClick={() => setSelectedEventType("All events")}
               >
                 <span className="emoji">📅</span>
                 <span className={styles.eventTypeName}>All events</span>
