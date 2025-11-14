@@ -7,6 +7,7 @@ import { getPlantPhotoUrl } from "../utils/constants";
 import Dropdown from "../components/Dropdown";
 import WateringCanIcon from "../components/WateringCanIcon";
 import TrashIcon from "../components/TrashIcon";
+import FilterIcon from "../components/FilterIcon";
 import Modal from "../components/Modal";
 import { useModal } from "../hooks/useModal";
 import styles from "./PlantsListPage.module.css";
@@ -208,7 +209,7 @@ const PlantsListPage = () => {
           onClick={() => setFiltersExpanded(!filtersExpanded)}
           title="Toggle filters"
         >
-          🔍 {filtersExpanded ? "▲" : "▼"}
+          <FilterIcon />
         </button>
 
         <div

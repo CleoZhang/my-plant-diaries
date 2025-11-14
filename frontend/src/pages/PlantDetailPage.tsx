@@ -65,7 +65,13 @@ const PlantDetailPage = () => {
       ]);
 
       setPlant(plantRes.data);
-      setPhotos(photosRes.data);
+      // Sort photos by taken_at date (newest first)
+      const sortedPhotos = [...photosRes.data].sort((a, b) => {
+        if (!a.taken_at) return 1;
+        if (!b.taken_at) return -1;
+        return new Date(b.taken_at).getTime() - new Date(a.taken_at).getTime();
+      });
+      setPhotos(sortedPhotos);
       setEventTypes(eventTypesRes.data);
       setLoading(false);
     } catch (err) {
@@ -178,7 +184,13 @@ const PlantDetailPage = () => {
 
       await Promise.all(photoPromises);
       const photosRes = await photosAPI.getByPlantId(parseInt(id));
-      setPhotos(photosRes.data);
+      // Sort photos by taken_at date (newest first)
+      const sortedPhotos = [...photosRes.data].sort((a, b) => {
+        if (!a.taken_at) return 1;
+        if (!b.taken_at) return -1;
+        return new Date(b.taken_at).getTime() - new Date(a.taken_at).getTime();
+      });
+      setPhotos(sortedPhotos);
     } catch (err) {
       showAlert("Failed to upload photos", "Error");
     } finally {
@@ -201,7 +213,15 @@ const PlantDetailPage = () => {
 
       if (id) {
         const photosRes = await photosAPI.getByPlantId(parseInt(id));
-        setPhotos(photosRes.data);
+        // Sort photos by taken_at date (newest first)
+        const sortedPhotos = [...photosRes.data].sort((a, b) => {
+          if (!a.taken_at) return 1;
+          if (!b.taken_at) return -1;
+          return (
+            new Date(b.taken_at).getTime() - new Date(a.taken_at).getTime()
+          );
+        });
+        setPhotos(sortedPhotos);
       }
 
       setEditingPhotoId(null);
