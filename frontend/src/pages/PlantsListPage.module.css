@@ -150,6 +150,13 @@
   font-size: 0.875rem;
 }
 
+.lastWateredContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
 .lastWatered {
   color: var(--text-secondary);
   margin: 0;

@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { plantsAPI, tagsAPI } from "../services/api";
+import { plantsAPI, tagsAPI, eventsAPI } from "../services/api";
 import { Plant, ViewMode, SortField, SortOrder } from "../types";
 import { formatDate, getDaysSinceWatered } from "../utils/dateUtils";
 import { getPlantPhotoUrl } from "../utils/constants";
 import Dropdown from "../components/Dropdown";
+import WateringCanIcon from "../components/WateringCanIcon";
 import styles from "./PlantsListPage.module.css";
 
 const PlantsListPage = () => {
@@ -92,6 +93,29 @@ const PlantsListPage = () => {
       setPlants(plants.filter((p) => p.id !== id));
     } catch (err) {
       alert("Failed to delete plant");
+    }
+  };
+
+  const handleWaterPlant = async (e: React.MouseEvent, plantId: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    try {
+      const today = new Date().toISOString().split("T")[0];
+      await eventsAPI.create({
+        plant_id: plantId,
+        event_type: "Watered",
+        event_date: today,
+      });
+
+      // Update the plant's last_watered field locally
+      setPlants(
+        plants.map((p) =>
+          p.id === plantId ? { ...p, last_watered: today } : p
+        )
+      );
+    } catch (err) {
+      alert("Failed to add watering event");
     }
   };
 
@@ -190,7 +214,7 @@ const PlantsListPage = () => {
             <PlantCard
               key={plant.id}
               plant={plant}
-              onDelete={handleDeletePlant}
+              onWater={handleWaterPlant}
             />
           ))}
         </div>
@@ -212,6 +236,7 @@ const PlantsListPage = () => {
                   key={plant.id}
                   plant={plant}
                   onDelete={handleDeletePlant}
+                  onWater={handleWaterPlant}
                 />
               ))}
             </tbody>
@@ -224,10 +249,10 @@ const PlantsListPage = () => {
 
 const PlantCard = ({
   plant,
-  onDelete,
+  onWater,
 }: {
   plant: Plant;
-  onDelete: (id: number) => void;
+  onWater: (e: React.MouseEvent, plantId: number) => void;
 }) => {
   const daysSinceWatered = getDaysSinceWatered(plant.last_watered);
   const profilePhotoUrl = getPlantPhotoUrl(plant.profile_photo);
@@ -246,32 +271,39 @@ const PlantCard = ({
         <h3>{plant.name}</h3>
         <div className={styles.plantCardInfo}>
           {plant.last_watered ? (
-            <p className={styles.lastWatered}>
-              💧 Last watered: {formatDate(plant.last_watered)}
-              {daysSinceWatered !== null && (
-                <span className={styles.daysAgo}>
-                  {" "}
-                  ({daysSinceWatered} days ago)
-                </span>
-              )}
-            </p>
+            <div className={styles.lastWateredContainer}>
+              <p className={styles.lastWatered}>
+                💧 Last watered:
+                {daysSinceWatered !== null && (
+                  <span className={styles.daysAgo}>
+                    {" "}
+                    {daysSinceWatered} days ago
+                  </span>
+                )}
+              </p>
+              <button
+                className={`btn-icon ${styles.waterBtn}`}
+                onClick={(e) => plant.id && onWater(e, plant.id)}
+                title="Water plant"
+              >
+                <WateringCanIcon />
+              </button>
+            </div>
           ) : (
-            <p className={`${styles.lastWatered} text-muted`}>
-              💧 Not watered yet
-            </p>
+            <div className={styles.lastWateredContainer}>
+              <p className={`${styles.lastWatered} text-muted`}>
+                💧 Not watered yet
+              </p>
+              <button
+                className={`btn-icon ${styles.waterBtn}`}
+                onClick={(e) => plant.id && onWater(e, plant.id)}
+                title="Water plant"
+              >
+                <WateringCanIcon />
+              </button>
+            </div>
           )}
         </div>
-      </div>
-      <div className={styles.plantCardActions}>
-        <button
-          className={`btn-icon ${styles.deleteBtn}`}
-          onClick={(e) => {
-            e.preventDefault();
-            if (plant.id) onDelete(plant.id);
-          }}
-        >
-          🗑️
-        </button>
       </div>
     </Link>
   );
@@ -280,9 +312,11 @@ const PlantCard = ({
 const PlantRow = ({
   plant,
   onDelete,
+  onWater,
 }: {
   plant: Plant;
   onDelete: (id: number) => void;
+  onWater: (e: React.MouseEvent, plantId: number) => void;
 }) => {
   const daysSinceWatered = getDaysSinceWatered(plant.last_watered);
 
@@ -315,8 +349,16 @@ const PlantRow = ({
       <td>{plant.purchased_from || "-"}</td>
       <td>
         <button
+          className={`btn-icon ${styles.waterBtn}`}
+          onClick={(e) => plant.id && onWater(e, plant.id)}
+          title="Water plant"
+        >
+          <WateringCanIcon />
+        </button>
+        <button
           className={`btn-icon ${styles.deleteBtn}`}
           onClick={() => plant.id && onDelete(plant.id)}
+          title="Delete plant"
         >
           🗑️
         </button>

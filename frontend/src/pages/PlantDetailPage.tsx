@@ -24,7 +24,6 @@ const PlantDetailPage = () => {
   const [eventTypes, setEventTypes] = useState<EventType[]>([]);
   const [selectedEventType, setSelectedEventType] = useState<string>("Water");
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [showInfoEdit, setShowInfoEdit] = useState(false);
   const [showAddEventModal, setShowAddEventModal] = useState(false);
   const [eventNotes, setEventNotes] = useState("");
   const [showPhotoGallery, setShowPhotoGallery] = useState(false);
