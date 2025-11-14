@@ -8,6 +8,7 @@ import Dropdown from "../components/Dropdown";
 import WateringCanIcon from "../components/WateringCanIcon";
 import FilterIcon from "../components/FilterIcon";
 import Modal from "../components/Modal";
+import LoadingSpinner from "../components/LoadingSpinner";
 import { useModal } from "../hooks/useModal";
 import styles from "./PlantsListPage.module.css";
 
@@ -245,187 +246,192 @@ const PlantsListPage = () => {
     }
   };
 
-  if (loading) return <div className="loading">Loading plants...</div>;
+  if (loading) return <LoadingSpinner fullPage message="Loading plants..." />;
   if (error) return <div className="error">{error}</div>;
 
   return (
-    <div className={`container ${styles.plantsListPage}`}>
-      <div className={styles.pageHeader}>
-        <h2>My Plants</h2>
-        <div className={styles.headerActions}>
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            accept=".csv"
-            style={{ display: "none" }}
-          />
-          <button
-            className="btn btn-secondary"
-            onClick={handleImportCSV}
-            disabled={isImporting}
-            title="Import plants from CSV file"
-          >
-            {isImporting ? "📥 Importing..." : "📥 Import CSV"}
-          </button>
-          <Link to="/plants/new" className="btn btn-primary">
-            + Add Plant
-          </Link>
-        </div>
-      </div>
-
-      <div className={styles.controls}>
-        <div className={styles.viewToggle}>
-          <div className={styles.toggleSwitch}>
-            <button
-              className={`${styles.toggleOption} ${
-                viewMode === "list" ? styles.active : ""
-              }`}
-              onClick={() => setViewMode("list")}
-              title="List view"
-            >
-              ☰
-            </button>
-            <button
-              className={`${styles.toggleOption} ${
-                viewMode === "card" ? styles.active : ""
-              }`}
-              onClick={() => setViewMode("card")}
-              title="Card view"
-            >
-              ▦
-            </button>
-            <div
-              className={`${styles.toggleSlider} ${
-                viewMode === "card" ? styles.slideRight : ""
-              }`}
-            ></div>
-          </div>
-        </div>
-
-        <button
-          className={`btn-icon ${styles.filterToggle}`}
-          onClick={() => setFiltersExpanded(!filtersExpanded)}
-          title="Toggle filters"
-        >
-          <FilterIcon />
-        </button>
-
-        <div
-          className={`${styles.filters} ${
-            filtersExpanded ? styles.filtersExpanded : ""
-          }`}
-        >
-          <div className={styles.filterSection}>
-            <label className={styles.sectionLabel}>Filter by:</label>
-            <div className={styles.filterControls}>
-              <Dropdown
-                value={filterField}
-                onChange={setFilterField}
-                options={[
-                  { value: "none", label: "No Filter" },
-                  { value: "status", label: "Status" },
-                  { value: "purchased_from", label: "Purchased From" },
-                ]}
-                placeholder=""
-              />
-              <Dropdown
-                value={filterValue}
-                onChange={setFilterValue}
-                options={getFilterValueOptions()}
-                placeholder=""
-              />
-            </div>
-          </div>
-
-          <div className={styles.sortSection}>
-            <label className={styles.sectionLabel}>Sort by:</label>
-            <div className={styles.sortControls}>
-              <Dropdown
-                value={sortField}
-                onChange={(value) => setSortField(value as SortField)}
-                options={[
-                  { value: "name", label: "Name" },
-                  { value: "alias", label: "Alias" },
-                  { value: "purchased_when", label: "Purchase Date" },
-                  { value: "received_when", label: "Received Date" },
-                  { value: "last_watered", label: "Last Watered" },
-                ]}
-                placeholder=""
-              />
-              <button
-                className="btn-icon"
-                onClick={() =>
-                  setSortOrder(sortOrder === "asc" ? "desc" : "asc")
-                }
-                title={
-                  sortOrder === "asc" ? "Sort ascending" : "Sort descending"
-                }
-              >
-                {sortOrder === "asc" ? "↑" : "↓"}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {filteredPlants.length === 0 ? (
-        <div className={styles.emptyState}>
-          <p>No plants found. Add your first plant to get started!</p>
-        </div>
-      ) : viewMode === "card" ? (
-        <div className={styles.plantsGrid}>
-          {filteredPlants.map((plant) => (
-            <PlantCard
-              key={plant.id}
-              plant={plant}
-              onWater={handleWaterPlant}
-              isMobile={isMobile}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className={styles.plantsTableContainer}>
-          <table className={styles.plantsTable}>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Status</th>
-                <th>Watered</th>
-                <th>Price</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredPlants.map((plant) => (
-                <PlantRow
-                  key={plant.id}
-                  plant={plant}
-                  onWater={handleWaterPlant}
-                  isMobile={isMobile}
-                />
-              ))}
-            </tbody>
-          </table>
-        </div>
+    <>
+      {isImporting && (
+        <LoadingSpinner fullPage message="Importing plants from CSV..." />
       )}
+      <div className={`container ${styles.plantsListPage}`}>
+        <div className={styles.pageHeader}>
+          <h2>My Plants</h2>
+          <div className={styles.headerActions}>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              accept=".csv"
+              style={{ display: "none" }}
+            />
+            <button
+              className="btn btn-secondary"
+              onClick={handleImportCSV}
+              disabled={isImporting}
+              title="Import plants from CSV file"
+            >
+              {isImporting ? "📥 Importing..." : "📥 Import CSV"}
+            </button>
+            <Link to="/plants/new" className="btn btn-primary">
+              + Add Plant
+            </Link>
+          </div>
+        </div>
 
-      <Modal
-        isOpen={modalState.isOpen}
-        onClose={closeModal}
-        title={modalState.title}
-        message={modalState.message}
-        type={modalState.type}
-        onConfirm={modalState.onConfirm}
-        confirmText={
-          modalState.title === "Replace all"
-            ? "Replace all"
-            : modalState.type === "confirm"
-            ? "Yes"
-            : "OK"
-        }
-      />
-    </div>
+        <div className={styles.controls}>
+          <div className={styles.viewToggle}>
+            <div className={styles.toggleSwitch}>
+              <button
+                className={`${styles.toggleOption} ${
+                  viewMode === "list" ? styles.active : ""
+                }`}
+                onClick={() => setViewMode("list")}
+                title="List view"
+              >
+                ☰
+              </button>
+              <button
+                className={`${styles.toggleOption} ${
+                  viewMode === "card" ? styles.active : ""
+                }`}
+                onClick={() => setViewMode("card")}
+                title="Card view"
+              >
+                ▦
+              </button>
+              <div
+                className={`${styles.toggleSlider} ${
+                  viewMode === "card" ? styles.slideRight : ""
+                }`}
+              ></div>
+            </div>
+          </div>
+
+          <button
+            className={`btn-icon ${styles.filterToggle}`}
+            onClick={() => setFiltersExpanded(!filtersExpanded)}
+            title="Toggle filters"
+          >
+            <FilterIcon />
+          </button>
+
+          <div
+            className={`${styles.filters} ${
+              filtersExpanded ? styles.filtersExpanded : ""
+            }`}
+          >
+            <div className={styles.filterSection}>
+              <label className={styles.sectionLabel}>Filter by:</label>
+              <div className={styles.filterControls}>
+                <Dropdown
+                  value={filterField}
+                  onChange={setFilterField}
+                  options={[
+                    { value: "none", label: "No Filter" },
+                    { value: "status", label: "Status" },
+                    { value: "purchased_from", label: "Purchased From" },
+                  ]}
+                  placeholder=""
+                />
+                <Dropdown
+                  value={filterValue}
+                  onChange={setFilterValue}
+                  options={getFilterValueOptions()}
+                  placeholder=""
+                />
+              </div>
+            </div>
+
+            <div className={styles.sortSection}>
+              <label className={styles.sectionLabel}>Sort by:</label>
+              <div className={styles.sortControls}>
+                <Dropdown
+                  value={sortField}
+                  onChange={(value) => setSortField(value as SortField)}
+                  options={[
+                    { value: "name", label: "Name" },
+                    { value: "alias", label: "Alias" },
+                    { value: "purchased_when", label: "Purchase Date" },
+                    { value: "received_when", label: "Received Date" },
+                    { value: "last_watered", label: "Last Watered" },
+                  ]}
+                  placeholder=""
+                />
+                <button
+                  className="btn-icon"
+                  onClick={() =>
+                    setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                  }
+                  title={
+                    sortOrder === "asc" ? "Sort ascending" : "Sort descending"
+                  }
+                >
+                  {sortOrder === "asc" ? "↑" : "↓"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {filteredPlants.length === 0 ? (
+          <div className={styles.emptyState}>
+            <p>No plants found. Add your first plant to get started!</p>
+          </div>
+        ) : viewMode === "card" ? (
+          <div className={styles.plantsGrid}>
+            {filteredPlants.map((plant) => (
+              <PlantCard
+                key={plant.id}
+                plant={plant}
+                onWater={handleWaterPlant}
+                isMobile={isMobile}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className={styles.plantsTableContainer}>
+            <table className={styles.plantsTable}>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Status</th>
+                  <th>Watered</th>
+                  <th>Price</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredPlants.map((plant) => (
+                  <PlantRow
+                    key={plant.id}
+                    plant={plant}
+                    onWater={handleWaterPlant}
+                    isMobile={isMobile}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        <Modal
+          isOpen={modalState.isOpen}
+          onClose={closeModal}
+          title={modalState.title}
+          message={modalState.message}
+          type={modalState.type}
+          onConfirm={modalState.onConfirm}
+          confirmText={
+            modalState.title === "Replace all"
+              ? "Replace all"
+              : modalState.type === "confirm"
+              ? "Yes"
+              : "OK"
+          }
+        />
+      </div>
+    </>
   );
 };
 

@@ -6,6 +6,7 @@ import { Plant } from "../types";
 import { toISODate } from "../utils/dateUtils";
 import Dropdown from "../components/Dropdown";
 import Modal from "../components/Modal";
+import LoadingSpinner from "../components/LoadingSpinner";
 import { useModal } from "../hooks/useModal";
 import "react-datepicker/dist/react-datepicker.css";
 import styles from "./AddPlantPage.module.css";
@@ -150,202 +151,205 @@ const AddPlantPage = () => {
     }
   };
 
-  if (loading) return <div className="loading">Loading...</div>;
+  if (loading)
+    return <LoadingSpinner fullPage message="Loading plant details..." />;
 
   return (
-    <div className={`container ${styles.addPlantPage}`}>
-      <div>
-        <h2>{isEdit ? "Edit Plant" : "Add New Plant"}</h2>
-      </div>
-
-      <form onSubmit={handleSubmit} className={styles.plantForm}>
-        <div className={styles.formSection}>
-          <h3>Basic Information</h3>
-
-          <div className={styles.formGroup}>
-            <label htmlFor="name">Plant Name *</label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label htmlFor="alias">Alias (Chinese name or nickname)</label>
-            <input
-              type="text"
-              id="alias"
-              name="alias"
-              value={formData.alias || ""}
-              onChange={handleInputChange}
-              placeholder="e.g., 绿萝, Lucky Plant"
-            />
-          </div>
-
-          <div className={styles.formRow}>
-            <div className={styles.formGroup}>
-              <label htmlFor="price">Price (£)</label>
-              <input
-                type="number"
-                id="price"
-                name="price"
-                step="0.01"
-                value={formData.price || ""}
-                onChange={handleNumberChange}
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="delivery_fee">Delivery Fee (£)</label>
-              <input
-                type="number"
-                id="delivery_fee"
-                name="delivery_fee"
-                step="0.01"
-                value={formData.delivery_fee || ""}
-                onChange={handleNumberChange}
-              />
-            </div>
-          </div>
-
-          <div className={styles.formGroup}>
-            <label htmlFor="status">Status</label>
-            <Dropdown
-              value={formData.status || "Alive"}
-              onChange={(value) =>
-                setFormData((prev) => ({ ...prev, status: value }))
-              }
-              options={[
-                { value: "Alive", label: "Alive" },
-                { value: "Dead", label: "Dead" },
-                { value: "Binned", label: "Binned" },
-                { value: "GaveAway", label: "Gave Away" },
-              ]}
-            />
-          </div>
+    <>
+      {uploading && <LoadingSpinner fullPage message="Uploading photos..." />}
+      <div className={`container ${styles.addPlantPage}`}>
+        <div>
+          <h2>{isEdit ? "Edit Plant" : "Add New Plant"}</h2>
         </div>
 
-        <div className={styles.formSection}>
-          <h3>Purchase Information</h3>
+        <form onSubmit={handleSubmit} className={styles.plantForm}>
+          <div className={styles.formSection}>
+            <h3>Basic Information</h3>
 
-          <div className={styles.formGroup}>
-            <label htmlFor="purchased_from">Purchased From</label>
-            <div className={styles.tagInputGroup}>
+            <div className={styles.formGroup}>
+              <label htmlFor="name">Plant Name *</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label htmlFor="alias">Alias (Chinese name or nickname)</label>
+              <input
+                type="text"
+                id="alias"
+                name="alias"
+                value={formData.alias || ""}
+                onChange={handleInputChange}
+                placeholder="e.g., 绿萝, Lucky Plant"
+              />
+            </div>
+
+            <div className={styles.formRow}>
+              <div className={styles.formGroup}>
+                <label htmlFor="price">Price (£)</label>
+                <input
+                  type="number"
+                  id="price"
+                  name="price"
+                  step="0.01"
+                  value={formData.price || ""}
+                  onChange={handleNumberChange}
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label htmlFor="delivery_fee">Delivery Fee (£)</label>
+                <input
+                  type="number"
+                  id="delivery_fee"
+                  name="delivery_fee"
+                  step="0.01"
+                  value={formData.delivery_fee || ""}
+                  onChange={handleNumberChange}
+                />
+              </div>
+            </div>
+
+            <div className={styles.formGroup}>
+              <label htmlFor="status">Status</label>
               <Dropdown
-                value={formData.purchased_from || ""}
+                value={formData.status || "Alive"}
                 onChange={(value) =>
-                  setFormData((prev) => ({ ...prev, purchased_from: value }))
+                  setFormData((prev) => ({ ...prev, status: value }))
                 }
                 options={[
-                  { value: "", label: "Select or add new" },
-                  ...tags.map((tag) => ({ value: tag, label: tag })),
+                  { value: "Alive", label: "Alive" },
+                  { value: "Dead", label: "Dead" },
+                  { value: "Binned", label: "Binned" },
+                  { value: "GaveAway", label: "Gave Away" },
                 ]}
-                placeholder="Select or add new"
               />
-              <div className={styles.newTagInput}>
-                <input
-                  type="text"
-                  placeholder="Add new tag"
-                  value={newTag}
-                  onChange={(e) => setNewTag(e.target.value)}
-                  onKeyPress={(e) =>
-                    e.key === "Enter" && (e.preventDefault(), handleAddTag())
+            </div>
+          </div>
+
+          <div className={styles.formSection}>
+            <h3>Purchase Information</h3>
+
+            <div className={styles.formGroup}>
+              <label htmlFor="purchased_from">Purchased From</label>
+              <div className={styles.tagInputGroup}>
+                <Dropdown
+                  value={formData.purchased_from || ""}
+                  onChange={(value) =>
+                    setFormData((prev) => ({ ...prev, purchased_from: value }))
                   }
+                  options={[
+                    { value: "", label: "Select or add new" },
+                    ...tags.map((tag) => ({ value: tag, label: tag })),
+                  ]}
+                  placeholder="Select or add new"
                 />
-                <button
-                  type="button"
-                  onClick={handleAddTag}
-                  className="btn btn-secondary"
-                >
-                  Add
-                </button>
+                <div className={styles.newTagInput}>
+                  <input
+                    type="text"
+                    placeholder="Add new tag"
+                    value={newTag}
+                    onChange={(e) => setNewTag(e.target.value)}
+                    onKeyPress={(e) =>
+                      e.key === "Enter" && (e.preventDefault(), handleAddTag())
+                    }
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddTag}
+                    className="btn btn-secondary"
+                  >
+                    Add
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className={styles.formRow}>
-            <div className={styles.formGroup}>
-              <label>Purchased When</label>
-              <DatePicker
-                selected={purchasedWhenDate}
-                onChange={(date) => setPurchasedWhenDate(date)}
-                dateFormat="dd, MMM yyyy"
-                placeholderText="Select date"
-                className={styles.datePicker}
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <label>Received When</label>
-              <DatePicker
-                selected={receivedWhenDate}
-                onChange={(date) => setReceivedWhenDate(date)}
-                dateFormat="dd, MMM yyyy"
-                placeholderText="Select date"
-                className={styles.datePicker}
-              />
-            </div>
-          </div>
-
-          <div className={styles.formGroup}>
-            <label htmlFor="purchase_notes">Purchase Notes</label>
-            <textarea
-              id="purchase_notes"
-              name="purchase_notes"
-              value={formData.purchase_notes || ""}
-              onChange={handleInputChange}
-              placeholder="e.g., 12cm pot, came with ceramic pot"
-              rows={3}
-            />
-          </div>
-        </div>
-
-        <div className={styles.formSection}>
-          <h3>Profile Photo</h3>
-
-          <div className={styles.formGroup}>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handlePhotoUpload}
-              disabled={uploading}
-            />
-            {uploading && <p>Uploading...</p>}
-            {formData.profile_photo && (
-              <div className={styles.photoPreview}>
-                <img src={formData.profile_photo} alt="Profile preview" />
+            <div className={styles.formRow}>
+              <div className={styles.formGroup}>
+                <label>Purchased When</label>
+                <DatePicker
+                  selected={purchasedWhenDate}
+                  onChange={(date) => setPurchasedWhenDate(date)}
+                  dateFormat="dd, MMM yyyy"
+                  placeholderText="Select date"
+                  className={styles.datePicker}
+                />
               </div>
-            )}
+
+              <div className={styles.formGroup}>
+                <label>Received When</label>
+                <DatePicker
+                  selected={receivedWhenDate}
+                  onChange={(date) => setReceivedWhenDate(date)}
+                  dateFormat="dd, MMM yyyy"
+                  placeholderText="Select date"
+                  className={styles.datePicker}
+                />
+              </div>
+            </div>
+
+            <div className={styles.formGroup}>
+              <label htmlFor="purchase_notes">Purchase Notes</label>
+              <textarea
+                id="purchase_notes"
+                name="purchase_notes"
+                value={formData.purchase_notes || ""}
+                onChange={handleInputChange}
+                placeholder="e.g., 12cm pot, came with ceramic pot"
+                rows={3}
+              />
+            </div>
           </div>
-        </div>
 
-        <div className={styles.formActions}>
-          <button
-            type="button"
-            onClick={() => navigate("/")}
-            className="btn btn-secondary"
-          >
-            Cancel
-          </button>
-          <button type="submit" className="btn btn-primary">
-            {isEdit ? "Update Plant" : "Add Plant"}
-          </button>
-        </div>
-      </form>
+          <div className={styles.formSection}>
+            <h3>Profile Photo</h3>
 
-      <Modal
-        isOpen={modalState.isOpen}
-        onClose={closeModal}
-        title={modalState.title}
-        message={modalState.message}
-        type={modalState.type}
-        onConfirm={modalState.onConfirm}
-      />
-    </div>
+            <div className={styles.formGroup}>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoUpload}
+                disabled={uploading}
+              />
+              {formData.profile_photo && (
+                <div className={styles.photoPreview}>
+                  <img src={formData.profile_photo} alt="Profile preview" />
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className={styles.formActions}>
+            <button
+              type="button"
+              onClick={() => navigate("/")}
+              className="btn btn-secondary"
+            >
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary">
+              {isEdit ? "Update Plant" : "Add Plant"}
+            </button>
+          </div>
+        </form>
+
+        <Modal
+          isOpen={modalState.isOpen}
+          onClose={closeModal}
+          title={modalState.title}
+          message={modalState.message}
+          type={modalState.type}
+          onConfirm={modalState.onConfirm}
+        />
+      </div>
+    </>
   );
 };
 
