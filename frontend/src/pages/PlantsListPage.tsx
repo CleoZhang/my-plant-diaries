@@ -10,6 +10,7 @@ import FilterIcon from "../components/FilterIcon";
 import Modal from "../components/Modal";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { useModal } from "../hooks/useModal";
+import { useLoading } from "../contexts/LoadingContext";
 import styles from "./PlantsListPage.module.css";
 
 const PlantsListPage = () => {
@@ -29,6 +30,7 @@ const PlantsListPage = () => {
   const { modalState, showAlert, showConfirm, closeModal } = useModal();
   const [isImporting, setIsImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { isLoading, startLoading, stopLoading } = useLoading();
 
   useEffect(() => {
     fetchPlants();
@@ -147,6 +149,7 @@ const PlantsListPage = () => {
     showConfirm(
       `Watered ${plantName} today?`,
       async () => {
+        startLoading();
         try {
           const today = new Date().toISOString().split("T")[0];
 
@@ -174,6 +177,8 @@ const PlantsListPage = () => {
           await fetchPlants();
         } catch (err) {
           showAlert("Failed to add watering event", "Error");
+        } finally {
+          stopLoading();
         }
       },
       "Add water event"
@@ -221,6 +226,7 @@ const PlantsListPage = () => {
 
   const performImport = async (file: File, clearExisting: boolean) => {
     setIsImporting(true);
+    startLoading();
 
     try {
       const response = await csvImportAPI.import(file, clearExisting);
@@ -247,6 +253,7 @@ const PlantsListPage = () => {
       showAlert(`Failed to import CSV: ${errorMessage}`, "Error");
     } finally {
       setIsImporting(false);
+      stopLoading();
       // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
@@ -279,7 +286,7 @@ const PlantsListPage = () => {
             <button
               className={`btn btn-secondary ${styles.importBtn}`}
               onClick={handleImportCSV}
-              disabled={isImporting}
+              disabled={isLoading || isImporting}
               title="Import plants from CSV file"
             >
               <span className={styles.importIcon}>📥</span>
@@ -289,7 +296,8 @@ const PlantsListPage = () => {
             </button>
             <Link
               to="/plants/new"
-              className={`btn btn-primary ${styles.addPlantBtn}`}
+              className={`btn btn-primary ${styles.addPlantBtn} ${isLoading ? 'disabled' : ''}`}
+              onClick={(e) => isLoading && e.preventDefault()}
             >
               <span className={styles.addPlantIcon}>+</span>
               <span className={styles.addPlantText}> Add Plant</span>
@@ -306,6 +314,7 @@ const PlantsListPage = () => {
                 }`}
                 onClick={() => setViewMode("list")}
                 title="List view"
+                disabled={isLoading}
               >
                 ☰
               </button>
@@ -315,6 +324,7 @@ const PlantsListPage = () => {
                 }`}
                 onClick={() => setViewMode("card")}
                 title="Card view"
+                disabled={isLoading}
               >
                 ▦
               </button>
@@ -333,12 +343,14 @@ const PlantsListPage = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className={styles.searchInput}
+              disabled={isLoading}
             />
             {searchQuery && (
               <button
                 className={styles.clearSearchBtn}
                 onClick={() => setSearchQuery("")}
                 title="Clear search"
+                disabled={isLoading}
               >
                 ×
               </button>
@@ -349,6 +361,7 @@ const PlantsListPage = () => {
             className={`btn-icon ${styles.filterToggle}`}
             onClick={() => setFiltersExpanded(!filtersExpanded)}
             title="Toggle filters"
+            disabled={isLoading}
           >
             <FilterIcon />
           </button>
@@ -370,12 +383,14 @@ const PlantsListPage = () => {
                     { value: "purchased_from", label: "Purchased From" },
                   ]}
                   placeholder=""
+                  disabled={isLoading}
                 />
                 <Dropdown
                   value={filterValue}
                   onChange={setFilterValue}
                   options={getFilterValueOptions()}
                   placeholder=""
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -394,6 +409,7 @@ const PlantsListPage = () => {
                     { value: "last_watered", label: "Last Watered" },
                   ]}
                   placeholder=""
+                  disabled={isLoading}
                 />
                 <button
                   className="btn-icon"
@@ -403,6 +419,7 @@ const PlantsListPage = () => {
                   title={
                     sortOrder === "asc" ? "Sort ascending" : "Sort descending"
                   }
+                  disabled={isLoading}
                 >
                   {sortOrder === "asc" ? "↑" : "↓"}
                 </button>
@@ -423,6 +440,7 @@ const PlantsListPage = () => {
                 plant={plant}
                 onWater={handleWaterPlant}
                 isMobile={isMobile}
+                isLoading={isLoading}
               />
             ))}
           </div>
@@ -445,6 +463,7 @@ const PlantsListPage = () => {
                     plant={plant}
                     onWater={handleWaterPlant}
                     isMobile={isMobile}
+                    isLoading={isLoading}
                   />
                 ))}
               </tbody>
@@ -476,10 +495,12 @@ const PlantCard = ({
   plant,
   onWater,
   isMobile,
+  isLoading,
 }: {
   plant: Plant;
   onWater: (e: React.MouseEvent, plantId: number) => void;
   isMobile: boolean;
+  isLoading: boolean;
 }) => {
   const daysSinceWatered = getDaysSinceWatered(plant.last_watered);
   const profilePhotoUrl = getPlantPhotoUrl(plant.profile_photo);
@@ -492,6 +513,7 @@ const PlantCard = ({
           className={`btn-icon ${styles.waterBtn}`}
           onClick={(e) => plant.id && onWater(e, plant.id)}
           title="Water plant"
+          disabled={isLoading}
         >
           <WateringCanIcon />
         </button>
@@ -525,10 +547,12 @@ const PlantRow = ({
   plant,
   onWater,
   isMobile,
+  isLoading,
 }: {
   plant: Plant;
   onWater: (e: React.MouseEvent, plantId: number) => void;
   isMobile: boolean;
+  isLoading: boolean;
 }) => {
   const daysSinceWatered = getDaysSinceWatered(plant.last_watered);
 
@@ -571,6 +595,7 @@ const PlantRow = ({
           className={`btn-icon ${styles.waterBtn}`}
           onClick={(e) => plant.id && onWater(e, plant.id)}
           title="Water plant"
+          disabled={isLoading}
         >
           <WateringCanIcon />
         </button>

@@ -16,6 +16,7 @@ import TrashIcon from "../components/TrashIcon";
 import EditIcon from "../components/EditIcon";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { useModal } from "../hooks/useModal";
+import { useLoading } from "../contexts/LoadingContext";
 import "react-calendar/dist/Calendar.css";
 import styles from "./PlantDetailPage.module.css";
 
@@ -42,6 +43,7 @@ const PlantDetailPage = () => {
   const [showMobilePhotoGalleryModal, setShowMobilePhotoGalleryModal] =
     useState(false);
   const { modalState, showAlert, showConfirm, closeModal } = useModal();
+  const { isLoading, startLoading, stopLoading } = useLoading();
 
   useEffect(() => {
     if (id) {
@@ -60,6 +62,7 @@ const PlantDetailPage = () => {
   }, [id, selectedEventType]);
 
   const fetchPlantData = async (plantId: number) => {
+    startLoading();
     try {
       const [plantRes, photosRes, eventTypesRes] = await Promise.all([
         plantsAPI.getById(plantId),
@@ -80,6 +83,8 @@ const PlantDetailPage = () => {
     } catch (err) {
       showAlert("Failed to load plant data", "Error");
       navigate("/");
+    } finally {
+      stopLoading();
     }
   };
 
@@ -143,6 +148,7 @@ const PlantDetailPage = () => {
       notes: eventNotes,
     };
 
+    startLoading();
     try {
       await eventsAPI.create(newEvent);
       fetchEvents(parseInt(id), selectedEventType);
@@ -150,6 +156,8 @@ const PlantDetailPage = () => {
       setEventNotes("");
     } catch (err) {
       showAlert("Failed to add event", "Error");
+    } finally {
+      stopLoading();
     }
   };
 
@@ -157,11 +165,14 @@ const PlantDetailPage = () => {
     showConfirm(
       "Delete this event?",
       async () => {
+        startLoading();
         try {
           await eventsAPI.delete(eventId);
           if (id) fetchEvents(parseInt(id), selectedEventType);
         } catch (err) {
           showAlert("Failed to delete event", "Error");
+        } finally {
+          stopLoading();
         }
       },
       "Delete Event"
@@ -173,6 +184,7 @@ const PlantDetailPage = () => {
     if (!files || !id || !plant) return;
 
     setUploading(true);
+    startLoading();
     try {
       const filesArray = Array.from(files);
       const uploadRes = await uploadAPI.multiple(filesArray, plant.name);
@@ -198,6 +210,7 @@ const PlantDetailPage = () => {
       showAlert("Failed to upload photos", "Error");
     } finally {
       setUploading(false);
+      stopLoading();
     }
   };
 
@@ -209,6 +222,7 @@ const PlantDetailPage = () => {
   const handleSavePhotoDate = async (photoId: number) => {
     if (!editingPhotoDate) return;
 
+    startLoading();
     try {
       await photosAPI.update(photoId, {
         taken_at: new Date(editingPhotoDate).toISOString(),
@@ -231,6 +245,8 @@ const PlantDetailPage = () => {
       setEditingPhotoDate("");
     } catch (err) {
       showAlert("Failed to update photo date", "Error");
+    } finally {
+      stopLoading();
     }
   };
 
@@ -245,11 +261,14 @@ const PlantDetailPage = () => {
     showConfirm(
       "Are you sure you want to delete this plant? This action cannot be undone.",
       async () => {
+        startLoading();
         try {
           await plantsAPI.delete(parseInt(id));
           navigate("/");
         } catch (err) {
           showAlert("Failed to delete plant", "Error");
+        } finally {
+          stopLoading();
         }
       },
       "Delete Plant"
@@ -323,7 +342,7 @@ const PlantDetailPage = () => {
               <div className={styles.plantAlias}> {plant.alias}</div>
             )}
           </h2>
-          <button onClick={() => navigate("/")} className="btn btn-secondary">
+          <button onClick={() => navigate("/")} className="btn btn-secondary" disabled={isLoading || uploading}>
             ←<span className={styles.backText}> Back to List</span>
           </button>
         </div>
@@ -333,6 +352,7 @@ const PlantDetailPage = () => {
           <button
             className={styles.mobileActionBtn}
             onClick={() => setShowMobilePlantInfoModal(true)}
+            disabled={isLoading || uploading}
           >
             <span className={styles.actionIcon}>📋</span>
             <span className={styles.actionLabel}>Plant Info</span>
@@ -340,6 +360,7 @@ const PlantDetailPage = () => {
           <button
             className={styles.mobileActionBtn}
             onClick={() => setShowMobilePhotoGalleryModal(true)}
+            disabled={isLoading || uploading}
           >
             <span className={styles.actionIcon}>📷</span>
             <span className={styles.actionLabel}>Gallery</span>
@@ -437,6 +458,7 @@ const PlantDetailPage = () => {
                 <button
                   onClick={() => setShowPhotoGallery(!showPhotoGallery)}
                   className="btn btn-secondary"
+                  disabled={isLoading || uploading}
                 >
                   {showPhotoGallery ? "Hide" : "Show"} Gallery
                 </button>
@@ -450,7 +472,7 @@ const PlantDetailPage = () => {
                       accept="image/*"
                       multiple
                       onChange={handlePhotoUpload}
-                      disabled={uploading}
+                      disabled={isLoading || uploading}
                     />
                   </div>
 
@@ -477,10 +499,11 @@ const PlantDetailPage = () => {
                                 />
                                 <button
                                   onClick={() => handleSavePhotoDate(photo.id!)}
+                                  disabled={isLoading}
                                 >
                                   Save
                                 </button>
-                                <button onClick={handleCancelEditPhotoDate}>
+                                <button onClick={handleCancelEditPhotoDate} disabled={isLoading}>
                                   Cancel
                                 </button>
                               </div>
@@ -496,6 +519,7 @@ const PlantDetailPage = () => {
                                     )
                                   }
                                   title="Edit date"
+                                  disabled={isLoading || uploading}
                                 >
                                   <EditIcon />
                                 </button>
@@ -537,6 +561,7 @@ const PlantDetailPage = () => {
                       selectedEventType === eventType.name ? styles.active : ""
                     }`}
                     onClick={() => setSelectedEventType(eventType.name)}
+                    disabled={isLoading || uploading}
                   >
                     <span className="emoji">{eventType.emoji}</span>
                     <span className={styles.eventTypeName}>
@@ -550,6 +575,7 @@ const PlantDetailPage = () => {
                   selectedEventType === "All events" ? styles.active : ""
                 }`}
                 onClick={() => setSelectedEventType("All events")}
+                disabled={isLoading || uploading}
               >
                 <span className="emoji">📅</span>
                 <span className={styles.eventTypeName}>All events</span>
@@ -624,6 +650,7 @@ const PlantDetailPage = () => {
                                 <button
                                   className="btn-icon"
                                   onClick={() => handleDeleteEvent(event.id!)}
+                                  disabled={isLoading || uploading}
                                 >
                                   ×
                                 </button>
@@ -656,6 +683,7 @@ const PlantDetailPage = () => {
                   onChange={(e) => setEventNotes(e.target.value)}
                   placeholder="Add any notes about this event..."
                   rows={3}
+                  disabled={isLoading}
                 />
               </div>
 
@@ -663,10 +691,11 @@ const PlantDetailPage = () => {
                 <button
                   onClick={() => setShowAddEventModal(false)}
                   className="btn btn-secondary"
+                  disabled={isLoading}
                 >
                   Cancel
                 </button>
-                <button onClick={handleAddEvent} className="btn btn-primary">
+                <button onClick={handleAddEvent} className="btn btn-primary" disabled={isLoading}>
                   Add Event
                 </button>
               </div>
@@ -789,6 +818,7 @@ const PlantDetailPage = () => {
                 <button
                   className={styles.closeModalBtn}
                   onClick={() => setShowMobilePhotoGalleryModal(false)}
+                  disabled={isLoading || uploading}
                 >
                   ×
                 </button>
@@ -799,7 +829,7 @@ const PlantDetailPage = () => {
                   accept="image/*"
                   multiple
                   onChange={handlePhotoUpload}
-                  disabled={uploading}
+                  disabled={isLoading || uploading}
                 />
               </div>
 
@@ -826,10 +856,11 @@ const PlantDetailPage = () => {
                             />
                             <button
                               onClick={() => handleSavePhotoDate(photo.id!)}
+                              disabled={isLoading}
                             >
                               Save
                             </button>
-                            <button onClick={handleCancelEditPhotoDate}>
+                            <button onClick={handleCancelEditPhotoDate} disabled={isLoading}>
                               Cancel
                             </button>
                           </div>
@@ -842,6 +873,7 @@ const PlantDetailPage = () => {
                                 handleEditPhotoDate(photo.id!, photo.taken_at!)
                               }
                               title="Edit date"
+                              disabled={isLoading || uploading}
                             >
                               <EditIcon />
                             </button>
@@ -867,6 +899,7 @@ const PlantDetailPage = () => {
             onClick={handleDeletePlant}
             className="btn btn-danger"
             title="Delete plant"
+            disabled={isLoading || uploading}
           >
             <TrashIcon /> Delete Plant
           </button>

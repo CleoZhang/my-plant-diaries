@@ -8,6 +8,7 @@ import Dropdown from "../components/Dropdown";
 import Modal from "../components/Modal";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { useModal } from "../hooks/useModal";
+import { useLoading } from "../contexts/LoadingContext";
 import "react-datepicker/dist/react-datepicker.css";
 import styles from "./AddPlantPage.module.css";
 
@@ -15,6 +16,7 @@ const AddPlantPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEdit = !!id;
+  const { isLoading, startLoading, stopLoading } = useLoading();
 
   const [formData, setFormData] = useState<Plant>({
     name: "",
@@ -53,6 +55,7 @@ const AddPlantPage = () => {
   }, [id, isEdit]);
 
   const fetchPlant = async (plantId: number) => {
+    startLoading();
     try {
       const response = await plantsAPI.getById(plantId);
       const plant = response.data;
@@ -68,6 +71,8 @@ const AddPlantPage = () => {
     } catch (err) {
       showAlert("Failed to load plant", "Error");
       navigate("/");
+    } finally {
+      stopLoading();
     }
   };
 
@@ -196,6 +201,7 @@ const AddPlantPage = () => {
     }
 
     setUploading(true);
+    startLoading();
     try {
       const response = await uploadAPI.single(file, formData.name);
       setFormData((prev) => ({
@@ -206,12 +212,14 @@ const AddPlantPage = () => {
       showAlert("Failed to upload photo", "Error");
     } finally {
       setUploading(false);
+      stopLoading();
     }
   };
 
   const handleAddTag = async () => {
     if (!newTag.trim() || tags.includes(newTag.trim())) return;
 
+    startLoading();
     try {
       await tagsAPI.create({
         tag_name: newTag.trim(),
@@ -222,6 +230,8 @@ const AddPlantPage = () => {
       setNewTag("");
     } catch (err) {
       showAlert("Failed to add tag", "Error");
+    } finally {
+      stopLoading();
     }
   };
 
@@ -274,6 +284,7 @@ const AddPlantPage = () => {
       received_when: receivedWhenDate ? toISODate(receivedWhenDate) : "",
     };
 
+    startLoading();
     try {
       if (isEdit && id) {
         await plantsAPI.update(parseInt(id), plantData);
@@ -292,6 +303,8 @@ const AddPlantPage = () => {
       } else {
         showAlert(`Failed to ${isEdit ? "update" : "create"} plant`, "Error");
       }
+    } finally {
+      stopLoading();
     }
   };
 
@@ -323,6 +336,7 @@ const AddPlantPage = () => {
                 value={formData.name}
                 onChange={handleInputChange}
                 required
+                disabled={isLoading || uploading}
                 className={nameError ? styles.inputError : ""}
               />
               {nameError && (
@@ -339,6 +353,7 @@ const AddPlantPage = () => {
                 value={formData.alias || ""}
                 onChange={handleInputChange}
                 placeholder="e.g., 绿萝, Lucky Plant"
+                disabled={isLoading || uploading}
               />
             </div>
 
@@ -353,6 +368,7 @@ const AddPlantPage = () => {
                   min="0"
                   value={formData.price || ""}
                   onChange={handleNumberChange}
+                  disabled={isLoading || uploading}
                   className={numberErrors.price ? styles.inputError : ""}
                 />
                 {numberErrors.price && (
@@ -370,6 +386,7 @@ const AddPlantPage = () => {
                   min="0"
                   value={formData.delivery_fee || ""}
                   onChange={handleNumberChange}
+                  disabled={isLoading || uploading}
                   className={numberErrors.delivery_fee ? styles.inputError : ""}
                 />
                 {numberErrors.delivery_fee && (
@@ -393,6 +410,7 @@ const AddPlantPage = () => {
                   { value: "Binned", label: "Binned" },
                   { value: "GaveAway", label: "Gave Away" },
                 ]}
+                disabled={isLoading || uploading}
               />
             </div>
           </div>
@@ -413,6 +431,7 @@ const AddPlantPage = () => {
                     ...tags.map((tag) => ({ value: tag, label: tag })),
                   ]}
                   placeholder="Select or add new"
+                  disabled={isLoading || uploading}
                 />
                 <div className={styles.newTagInput}>
                   <input
@@ -423,11 +442,13 @@ const AddPlantPage = () => {
                     onKeyPress={(e) =>
                       e.key === "Enter" && (e.preventDefault(), handleAddTag())
                     }
+                    disabled={isLoading || uploading}
                   />
                   <button
                     type="button"
                     onClick={handleAddTag}
                     className="btn btn-secondary"
+                    disabled={isLoading || uploading}
                   >
                     Add
                   </button>
@@ -444,6 +465,7 @@ const AddPlantPage = () => {
                   dateFormat="dd, MMM yyyy"
                   placeholderText="Select date"
                   className={styles.datePicker}
+                  disabled={isLoading || uploading}
                 />
               </div>
 
@@ -455,6 +477,7 @@ const AddPlantPage = () => {
                   dateFormat="dd, MMM yyyy"
                   placeholderText="Select date"
                   className={styles.datePicker}
+                  disabled={isLoading || uploading}
                 />
               </div>
             </div>
@@ -468,6 +491,7 @@ const AddPlantPage = () => {
                 onChange={handleInputChange}
                 placeholder="e.g., 12cm pot, came with ceramic pot"
                 rows={3}
+                disabled={isLoading || uploading}
               />
             </div>
           </div>
@@ -480,7 +504,7 @@ const AddPlantPage = () => {
                 type="file"
                 accept="image/*"
                 onChange={handlePhotoUpload}
-                disabled={uploading}
+                disabled={isLoading || uploading}
               />
               {formData.profile_photo && (
                 <div className={styles.photoPreview}>
@@ -495,10 +519,11 @@ const AddPlantPage = () => {
               type="button"
               onClick={() => navigate("/")}
               className="btn btn-secondary"
+              disabled={isLoading || uploading}
             >
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="btn btn-primary" disabled={isLoading || uploading}>
               {isEdit ? "Update Plant" : "Add Plant"}
             </button>
           </div>

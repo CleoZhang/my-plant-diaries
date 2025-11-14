@@ -12,6 +12,7 @@ interface DropdownProps {
   options: DropdownOption[];
   placeholder?: string;
   className?: string;
+  disabled?: boolean;
 }
 
 const Dropdown: React.FC<DropdownProps> = ({
@@ -20,6 +21,7 @@ const Dropdown: React.FC<DropdownProps> = ({
   options,
   placeholder,
   className = "",
+  disabled = false,
 }) => {
   return (
     <div className={`${styles.customDropdown} ${className}`}>
@@ -27,6 +29,7 @@ const Dropdown: React.FC<DropdownProps> = ({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className={styles.customDropdownSelect}
+        disabled={disabled}
       >
         {placeholder && placeholder.trim() !== "" && (
           <option value="" disabled>

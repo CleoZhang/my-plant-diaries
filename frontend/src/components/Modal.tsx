@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useLoading } from "../contexts/LoadingContext";
 import styles from "./Modal.module.css";
 
 interface ModalProps {
@@ -22,6 +23,8 @@ const Modal = ({
   confirmText = "OK",
   cancelText = "Cancel",
 }: ModalProps) => {
+  const { isLoading } = useLoading();
+
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape" && isOpen) {
@@ -69,15 +72,15 @@ const Modal = ({
         <div className={styles.modalActions}>
           {type === "confirm" ? (
             <>
-              <button onClick={handleCancel} className="btn btn-secondary">
+              <button onClick={handleCancel} className="btn btn-secondary" disabled={isLoading}>
                 {title === "Replace all" ? "Keep existing" : cancelText}
               </button>
-              <button onClick={handleConfirm} className="btn btn-primary">
+              <button onClick={handleConfirm} className="btn btn-primary" disabled={isLoading}>
                 {confirmText}
               </button>
             </>
           ) : (
-            <button onClick={onClose} className="btn btn-primary">
+            <button onClick={onClose} className="btn btn-primary" disabled={isLoading}>
               {confirmText}
             </button>
           )}
