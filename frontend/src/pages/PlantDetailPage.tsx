@@ -649,7 +649,7 @@ const PlantDetailPage = () => {
               <p>Date: {formatDate(toISODate(selectedDate))}</p>
 
               <div className={styles.formGroup}>
-                <label>Notes (optional)</label>
+                {/* <label>Notes (optional)</label> */}
                 <textarea
                   value={eventNotes}
                   onChange={(e) => setEventNotes(e.target.value)}

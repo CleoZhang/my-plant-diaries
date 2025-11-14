@@ -24,6 +24,7 @@ const PlantsListPage = () => {
   const [filterValue, setFilterValue] = useState<string>("Alive");
   const [tags, setTags] = useState<string[]>([]);
   const [filtersExpanded, setFiltersExpanded] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const { modalState, showAlert, showConfirm, closeModal } = useModal();
   const [isImporting, setIsImporting] = useState(false);
@@ -45,7 +46,7 @@ const PlantsListPage = () => {
 
   useEffect(() => {
     applyFiltersAndSort();
-  }, [plants, sortField, sortOrder, filterField, filterValue]);
+  }, [plants, sortField, sortOrder, filterField, filterValue, searchQuery]);
 
   const fetchPlants = async () => {
     try {
@@ -94,6 +95,16 @@ const PlantsListPage = () => {
 
   const applyFiltersAndSort = () => {
     let filtered = [...plants];
+
+    // Apply search
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter((plant) => {
+        const nameMatch = plant.name.toLowerCase().includes(query);
+        const aliasMatch = plant.alias?.toLowerCase().includes(query) || false;
+        return nameMatch || aliasMatch;
+      });
+    }
 
     // Apply filter
     if (filterField !== "none" && filterValue !== "all") {
@@ -306,6 +317,25 @@ const PlantsListPage = () => {
                 }`}
               ></div>
             </div>
+          </div>
+
+          <div className={styles.searchContainer}>
+            <input
+              type="text"
+              placeholder="Search plants..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={styles.searchInput}
+            />
+            {searchQuery && (
+              <button
+                className={styles.clearSearchBtn}
+                onClick={() => setSearchQuery("")}
+                title="Clear search"
+              >
+                ×
+              </button>
+            )}
           </div>
 
           <button

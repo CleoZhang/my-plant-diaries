@@ -462,6 +462,25 @@
   margin-top: 0;
 }
 
+.formGroup {
+  margin-top: var(--spacing-md);
+}
+
+.formGroup textarea {
+  width: 100%;
+  padding: var(--spacing-sm);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 0.875rem;
+  resize: vertical;
+}
+
+.formGroup textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
 .modalActions {
   display: flex;
   justify-content: flex-end;
