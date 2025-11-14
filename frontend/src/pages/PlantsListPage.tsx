@@ -4,6 +4,7 @@ import { plantsAPI, tagsAPI } from "../services/api";
 import { Plant, ViewMode, SortField, SortOrder } from "../types";
 import { formatDate, getDaysSinceWatered } from "../utils/dateUtils";
 import { getPlantPhotoUrl } from "../utils/constants";
+import Dropdown from "../components/Dropdown";
 import "./PlantsListPage.css";
 
 const PlantsListPage = () => {
@@ -127,44 +128,46 @@ const PlantsListPage = () => {
         <div className="filters">
           <div className="filter-group">
             <label>Status:</label>
-            <select
+            <Dropdown
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-            >
-              <option value="all">All</option>
-              <option value="Alive">Alive</option>
-              <option value="Dead">Dead</option>
-              <option value="Binned">Binned</option>
-              <option value="GaveAway">Gave Away</option>
-            </select>
+              onChange={setFilterStatus}
+              options={[
+                { value: "all", label: "All" },
+                { value: "Alive", label: "Alive" },
+                { value: "Dead", label: "Dead" },
+                { value: "Binned", label: "Binned" },
+                { value: "GaveAway", label: "Gave Away" },
+              ]}
+              placeholder=""
+            />
           </div>
 
           <div className="filter-group">
             <label>Purchased From:</label>
-            <select
+            <Dropdown
               value={filterPurchasedFrom}
-              onChange={(e) => setFilterPurchasedFrom(e.target.value)}
-            >
-              <option value="all">All</option>
-              {tags.map((tag) => (
-                <option key={tag} value={tag}>
-                  {tag}
-                </option>
-              ))}
-            </select>
+              onChange={setFilterPurchasedFrom}
+              options={[
+                { value: "all", label: "All" },
+                ...tags.map((tag) => ({ value: tag, label: tag })),
+              ]}
+              placeholder=""
+            />
           </div>
 
           <div className="filter-group">
             <label>Sort By:</label>
-            <select
+            <Dropdown
               value={sortField}
-              onChange={(e) => setSortField(e.target.value as SortField)}
-            >
-              <option value="name">Name</option>
-              <option value="purchased_when">Purchase Date</option>
-              <option value="received_when">Received Date</option>
-              <option value="last_watered">Last Watered</option>
-            </select>
+              onChange={(value) => setSortField(value as SortField)}
+              options={[
+                { value: "name", label: "Name" },
+                { value: "purchased_when", label: "Purchase Date" },
+                { value: "received_when", label: "Received Date" },
+                { value: "last_watered", label: "Last Watered" },
+              ]}
+              placeholder=""
+            />
           </div>
 
           <button

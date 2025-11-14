@@ -4,6 +4,7 @@ import DatePicker from "react-datepicker";
 import { plantsAPI, uploadAPI, tagsAPI } from "../services/api";
 import { Plant } from "../types";
 import { parseDate, toISODate } from "../utils/dateUtils";
+import Dropdown from "../components/Dropdown";
 import "react-datepicker/dist/react-datepicker.css";
 import "./AddPlantPage.css";
 
@@ -189,17 +190,18 @@ const AddPlantPage = () => {
 
           <div className="form-group">
             <label htmlFor="status">Status</label>
-            <select
-              id="status"
-              name="status"
-              value={formData.status}
-              onChange={handleInputChange}
-            >
-              <option value="Alive">Alive</option>
-              <option value="Dead">Dead</option>
-              <option value="Binned">Binned</option>
-              <option value="GaveAway">Gave Away</option>
-            </select>
+            <Dropdown
+              value={formData.status || "Alive"}
+              onChange={(value) =>
+                setFormData((prev) => ({ ...prev, status: value }))
+              }
+              options={[
+                { value: "Alive", label: "Alive" },
+                { value: "Dead", label: "Dead" },
+                { value: "Binned", label: "Binned" },
+                { value: "GaveAway", label: "Gave Away" },
+              ]}
+            />
           </div>
         </div>
 
@@ -209,19 +211,17 @@ const AddPlantPage = () => {
           <div className="form-group">
             <label htmlFor="purchased_from">Purchased From</label>
             <div className="tag-input-group">
-              <select
-                id="purchased_from"
-                name="purchased_from"
-                value={formData.purchased_from}
-                onChange={handleInputChange}
-              >
-                <option value="">Select or add new</option>
-                {tags.map((tag) => (
-                  <option key={tag} value={tag}>
-                    {tag}
-                  </option>
-                ))}
-              </select>
+              <Dropdown
+                value={formData.purchased_from || ""}
+                onChange={(value) =>
+                  setFormData((prev) => ({ ...prev, purchased_from: value }))
+                }
+                options={[
+                  { value: "", label: "Select or add new" },
+                  ...tags.map((tag) => ({ value: tag, label: tag })),
+                ]}
+                placeholder="Select or add new"
+              />
               <div className="new-tag-input">
                 <input
                   type="text"
