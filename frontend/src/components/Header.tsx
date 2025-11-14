@@ -1,13 +1,14 @@
 import { Link } from "react-router-dom";
+import styles from "../App.module.css";
 
 const Header = () => {
   return (
-    <header className="header">
+    <header className={styles.header}>
       <div className="container">
-        <div className="header-content">
+        <div className={styles.headerContent}>
           <div>
             <h1>🪴 My Plant Diaries</h1>
-            <p className="header-subtitle">
+            <p className={styles.headerSubtitle}>
               Track and care for your houseplants
             </p>
           </div>

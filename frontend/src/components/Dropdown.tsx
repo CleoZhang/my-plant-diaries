@@ -1,5 +1,5 @@
 import React from "react";
-import "./Dropdown.css";
+import styles from "./Dropdown.module.css";
 
 interface DropdownOption {
   value: string;
@@ -22,11 +22,11 @@ const Dropdown: React.FC<DropdownProps> = ({
   className = "",
 }) => {
   return (
-    <div className={`custom-dropdown ${className}`}>
+    <div className={`${styles.customDropdown} ${className}`}>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="custom-dropdown-select"
+        className={styles.customDropdownSelect}
       >
         {placeholder && placeholder.trim() !== "" && (
           <option value="" disabled>
@@ -39,7 +39,7 @@ const Dropdown: React.FC<DropdownProps> = ({
           </option>
         ))}
       </select>
-      <span className="custom-dropdown-arrow">▼</span>
+      <span className={styles.customDropdownArrow}>▼</span>
     </div>
   );
 };

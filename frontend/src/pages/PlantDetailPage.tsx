@@ -12,7 +12,7 @@ import { Plant, PlantEvent, PlantPhoto, EventType } from "../types";
 import { formatDate, toISODate } from "../utils/dateUtils";
 import { getPlantPhotoUrl } from "../utils/constants";
 import "react-calendar/dist/Calendar.css";
-import "./PlantDetailPage.css";
+import styles from "./PlantDetailPage.module.css";
 
 const PlantDetailPage = () => {
   const { id } = useParams();
@@ -158,8 +158,8 @@ const PlantDetailPage = () => {
   }
 
   return (
-    <div className="container plant-detail-page">
-      <div className="page-header">
+    <div className={`container ${styles.plantDetailPage}`}>
+      <div>
         <h2>{plant.name}</h2>
         <div className="header-actions">
           <Link to={`/plants/${id}/edit`} className="btn btn-secondary">
@@ -171,16 +171,16 @@ const PlantDetailPage = () => {
         </div>
       </div>
 
-      <div className="plant-detail-layout">
-        <div className="plant-info-section">
-          <div className="plant-profile">
-            <div className="profile-photo">
+      <div className={styles.plantDetailLayout}>
+        <div className={styles.plantInfoSection}>
+          <div className={styles.plantProfile}>
+            <div className={styles.profilePhoto}>
               <img
                 src={getPlantPhotoUrl(plant.profile_photo)}
                 alt={plant.name}
               />
             </div>
-            <div className="plant-status">
+            <div className={styles.plantStatus}>
               <span
                 className={`status-badge status-${plant.status?.toLowerCase()}`}
               >
@@ -189,47 +189,47 @@ const PlantDetailPage = () => {
             </div>
           </div>
 
-          <details className="plant-info-details" open>
+          <details className={styles.plantInfoDetails} open>
             <summary>
               <h3>Plant Information</h3>
             </summary>
-            <div className="info-content">
-              <div className="info-row">
+            <div className={styles.infoContent}>
+              <div className={styles.infoRow}>
                 <strong>Name:</strong>
                 <span>{plant.name}</span>
               </div>
               {plant.price && (
-                <div className="info-row">
+                <div className={styles.infoRow}>
                   <strong>Price:</strong>
                   <span>£{plant.price.toFixed(2)}</span>
                 </div>
               )}
               {plant.delivery_fee && (
-                <div className="info-row">
+                <div className={styles.infoRow}>
                   <strong>Delivery Fee:</strong>
                   <span>£{plant.delivery_fee.toFixed(2)}</span>
                 </div>
               )}
               {plant.purchased_from && (
-                <div className="info-row">
+                <div className={styles.infoRow}>
                   <strong>Purchased From:</strong>
                   <span>{plant.purchased_from}</span>
                 </div>
               )}
               {plant.purchased_when && (
-                <div className="info-row">
+                <div className={styles.infoRow}>
                   <strong>Purchased When:</strong>
                   <span>{formatDate(plant.purchased_when)}</span>
                 </div>
               )}
               {plant.received_when && (
-                <div className="info-row">
+                <div className={styles.infoRow}>
                   <strong>Received When:</strong>
                   <span>{formatDate(plant.received_when)}</span>
                 </div>
               )}
               {plant.last_watered && (
-                <div className="info-row">
+                <div className={styles.infoRow}>
                   <strong>Last Watered:</strong>
                   <span>{formatDate(plant.last_watered)}</span>
                 </div>
@@ -237,8 +237,8 @@ const PlantDetailPage = () => {
             </div>
           </details>
 
-          <div className="photo-gallery-section">
-            <div className="section-header">
+          <div className={styles.photoGallerySection}>
+            <div className={styles.sectionHeader}>
               <h3>Photo Gallery</h3>
               <button
                 onClick={() => setShowPhotoGallery(!showPhotoGallery)}
@@ -250,7 +250,7 @@ const PlantDetailPage = () => {
 
             {showPhotoGallery && (
               <>
-                <div className="photo-upload">
+                <div className={styles.photoUpload}>
                   <input
                     type="file"
                     accept="image/*"
@@ -261,18 +261,18 @@ const PlantDetailPage = () => {
                   {uploading && <p>Uploading photos...</p>}
                 </div>
 
-                <div className="photo-grid">
+                <div className={styles.photoGrid}>
                   {photos.map((photo) => (
-                    <div key={photo.id} className="photo-item">
+                    <div key={photo.id} className={styles.photoItem}>
                       <img
                         src={photo.photo_path}
                         alt={photo.caption || "Plant photo"}
                       />
                       {photo.caption && (
-                        <p className="photo-caption">{photo.caption}</p>
+                        <p className={styles.photoCaption}>{photo.caption}</p>
                       )}
                       {photo.taken_at && (
-                        <p className="photo-date">
+                        <p className={styles.photoDate}>
                           {formatDate(photo.taken_at)}
                         </p>
                       )}
@@ -290,15 +290,15 @@ const PlantDetailPage = () => {
           </div>
         </div>
 
-        <div className="events-section">
+        <div className={styles.eventsSection}>
           <h3>Plant Events</h3>
 
-          <div className="event-type-selector">
+          <div className={styles.eventTypeSelector}>
             {eventTypes.map((eventType) => (
               <button
                 key={eventType.id}
-                className={`event-type-btn ${
-                  selectedEventType === eventType.name ? "active" : ""
+                className={`${styles.eventTypeBtn} ${
+                  selectedEventType === eventType.name ? styles.active : ""
                 }`}
                 onClick={() => setSelectedEventType(eventType.name)}
               >
@@ -308,12 +308,12 @@ const PlantDetailPage = () => {
             ))}
           </div>
 
-          <div className="calendar-container">
-            <div className="calendar-header">
+          <div className={styles.calendarContainer}>
+            <div className={styles.calendarHeader}>
               <h4>
                 {getSelectedEventType()?.emoji} {selectedEventType} Calendar
               </h4>
-              <p className="calendar-hint">
+              <p className={styles.calendarHint}>
                 Click a date to add or remove an event
               </p>
             </div>
@@ -335,12 +335,14 @@ const PlantDetailPage = () => {
                 <ul>
                   {events.slice(0, 5).map((event) => (
                     <li key={event.id}>
-                      <div className="event-item">
-                        <span className="event-date">
+                      <div className={styles.eventItem}>
+                        <span className={styles.eventDate}>
                           {formatDate(event.event_date)}
                         </span>
                         {event.notes && (
-                          <span className="event-notes">{event.notes}</span>
+                          <span className={styles.eventNotes}>
+                            {event.notes}
+                          </span>
                         )}
                         <button
                           className="btn-icon delete-btn"
@@ -360,14 +362,14 @@ const PlantDetailPage = () => {
 
       {showAddEventModal && (
         <div
-          className="modal-overlay"
+          className={styles.modalOverlay}
           onClick={() => setShowAddEventModal(false)}
         >
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <h3>Add {selectedEventType} Event</h3>
             <p>Date: {formatDate(toISODate(selectedDate))}</p>
 
-            <div className="form-group">
+            <div className={styles.formGroup}>
               <label>Notes (optional)</label>
               <textarea
                 value={eventNotes}
@@ -377,7 +379,7 @@ const PlantDetailPage = () => {
               />
             </div>
 
-            <div className="modal-actions">
+            <div className={styles.modalActions}>
               <button
                 onClick={() => setShowAddEventModal(false)}
                 className="btn btn-secondary"

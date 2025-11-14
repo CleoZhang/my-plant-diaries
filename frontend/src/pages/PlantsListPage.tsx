@@ -5,7 +5,7 @@ import { Plant, ViewMode, SortField, SortOrder } from "../types";
 import { formatDate, getDaysSinceWatered } from "../utils/dateUtils";
 import { getPlantPhotoUrl } from "../utils/constants";
 import Dropdown from "../components/Dropdown";
-import "./PlantsListPage.css";
+import styles from "./PlantsListPage.module.css";
 
 const PlantsListPage = () => {
   const [plants, setPlants] = useState<Plant[]>([]);
@@ -99,16 +99,16 @@ const PlantsListPage = () => {
   if (error) return <div className="error">{error}</div>;
 
   return (
-    <div className="container plants-list-page">
-      <div className="page-header">
+    <div className={`container ${styles.plantsListPage}`}>
+      <div className={styles.pageHeader}>
         <h2>My Plants</h2>
         <Link to="/plants/new" className="btn btn-primary">
           + Add Plant
         </Link>
       </div>
 
-      <div className="controls">
-        <div className="view-toggle">
+      <div className={styles.controls}>
+        <div className={styles.viewToggle}>
           <button
             className={`btn-icon ${viewMode === "list" ? "active" : ""}`}
             onClick={() => setViewMode("list")}
@@ -125,8 +125,8 @@ const PlantsListPage = () => {
           </button>
         </div>
 
-        <div className="filters">
-          <div className="filter-group">
+        <div className={styles.filters}>
+          <div className={styles.filterGroup}>
             <label>Status:</label>
             <Dropdown
               value={filterStatus}
@@ -142,7 +142,7 @@ const PlantsListPage = () => {
             />
           </div>
 
-          <div className="filter-group">
+          <div className={styles.filterGroup}>
             <label>Purchased From:</label>
             <Dropdown
               value={filterPurchasedFrom}
@@ -155,7 +155,7 @@ const PlantsListPage = () => {
             />
           </div>
 
-          <div className="filter-group">
+          <div className={styles.filterGroup}>
             <label>Sort By:</label>
             <Dropdown
               value={sortField}
@@ -181,11 +181,11 @@ const PlantsListPage = () => {
       </div>
 
       {filteredPlants.length === 0 ? (
-        <div className="empty-state">
+        <div className={styles.emptyState}>
           <p>No plants found. Add your first plant to get started!</p>
         </div>
       ) : viewMode === "card" ? (
-        <div className="plants-grid">
+        <div className={styles.plantsGrid}>
           {filteredPlants.map((plant) => (
             <PlantCard
               key={plant.id}
@@ -195,8 +195,8 @@ const PlantsListPage = () => {
           ))}
         </div>
       ) : (
-        <div className="plants-table-container">
-          <table className="plants-table">
+        <div className={styles.plantsTableContainer}>
+          <table className={styles.plantsTable}>
             <thead>
               <tr>
                 <th>Name</th>
@@ -233,29 +233,36 @@ const PlantCard = ({
   const profilePhotoUrl = getPlantPhotoUrl(plant.profile_photo);
 
   return (
-    <Link to={`/plants/${plant.id}`} className="plant-card card">
-      <div className="plant-card-image">
+    <Link to={`/plants/${plant.id}`} className={`${styles.plantCard} card`}>
+      <div className={styles.plantCardImage}>
         <img src={profilePhotoUrl} alt={plant.name} />
-        <span className={`status-badge status-${plant.status?.toLowerCase()}`}>
+        <span
+          className={`${styles.statusBadge} ${styles["status" + plant.status]}`}
+        >
           {plant.status}
         </span>
       </div>
-      <div className="plant-card-content">
+      <div className={styles.plantCardContent}>
         <h3>{plant.name}</h3>
-        <div className="plant-card-info">
+        <div className={styles.plantCardInfo}>
           {plant.last_watered ? (
-            <p className="last-watered">
+            <p className={styles.lastWatered}>
               💧 Last watered: {formatDate(plant.last_watered)}
               {daysSinceWatered !== null && (
-                <span className="days-ago"> ({daysSinceWatered} days ago)</span>
+                <span className={styles.daysAgo}>
+                  {" "}
+                  ({daysSinceWatered} days ago)
+                </span>
               )}
             </p>
           ) : (
-            <p className="last-watered text-muted">💧 Not watered yet</p>
+            <p className={`${styles.lastWatered} text-muted`}>
+              💧 Not watered yet
+            </p>
           )}
         </div>
       </div>
-      <div className="plant-card-actions">
+      <div className={styles.plantCardActions}>
         <button
           className="btn-icon delete-btn"
           onClick={(e) => {
@@ -282,12 +289,14 @@ const PlantRow = ({
   return (
     <tr>
       <td>
-        <Link to={`/plants/${plant.id}`} className="plant-name-link">
+        <Link to={`/plants/${plant.id}`} className={styles.plantNameLink}>
           {plant.name}
         </Link>
       </td>
       <td>
-        <span className={`status-badge status-${plant.status?.toLowerCase()}`}>
+        <span
+          className={`${styles.statusBadge} ${styles["status" + plant.status]}`}
+        >
           {plant.status}
         </span>
       </td>

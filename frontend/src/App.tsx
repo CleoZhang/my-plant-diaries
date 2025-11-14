@@ -3,13 +3,13 @@ import Header from "./components/Header";
 import PlantsListPage from "./pages/PlantsListPage";
 import PlantDetailPage from "./pages/PlantDetailPage";
 import AddPlantPage from "./pages/AddPlantPage";
-import "./App.css";
+import styles from "./App.module.css";
 
 function App() {
   return (
-    <div className="app">
+    <div className={styles.app}>
       <Header />
-      <main className="main-content">
+      <main className={styles.mainContent}>
         <Routes>
           <Route path="/" element={<PlantsListPage />} />
           <Route path="/plants/new" element={<AddPlantPage />} />

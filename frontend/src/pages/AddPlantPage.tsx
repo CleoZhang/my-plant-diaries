@@ -3,10 +3,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import { plantsAPI, uploadAPI, tagsAPI } from "../services/api";
 import { Plant } from "../types";
-import { parseDate, toISODate } from "../utils/dateUtils";
+import { toISODate } from "../utils/dateUtils";
 import Dropdown from "../components/Dropdown";
 import "react-datepicker/dist/react-datepicker.css";
-import "./AddPlantPage.css";
+import styles from "./AddPlantPage.module.css";
 
 const AddPlantPage = () => {
   const navigate = useNavigate();
@@ -141,16 +141,16 @@ const AddPlantPage = () => {
   if (loading) return <div className="loading">Loading...</div>;
 
   return (
-    <div className="container add-plant-page">
-      <div className="page-header">
+    <div className={`container ${styles.addPlantPage}`}>
+      <div>
         <h2>{isEdit ? "Edit Plant" : "Add New Plant"}</h2>
       </div>
 
-      <form onSubmit={handleSubmit} className="plant-form">
-        <div className="form-section">
+      <form onSubmit={handleSubmit} className={styles.plantForm}>
+        <div className={styles.formSection}>
           <h3>Basic Information</h3>
 
-          <div className="form-group">
+          <div className={styles.formGroup}>
             <label htmlFor="name">Plant Name *</label>
             <input
               type="text"
@@ -162,8 +162,8 @@ const AddPlantPage = () => {
             />
           </div>
 
-          <div className="form-row">
-            <div className="form-group">
+          <div className={styles.formRow}>
+            <div className={styles.formGroup}>
               <label htmlFor="price">Price (£)</label>
               <input
                 type="number"
@@ -175,7 +175,7 @@ const AddPlantPage = () => {
               />
             </div>
 
-            <div className="form-group">
+            <div className={styles.formGroup}>
               <label htmlFor="delivery_fee">Delivery Fee (£)</label>
               <input
                 type="number"
@@ -188,7 +188,7 @@ const AddPlantPage = () => {
             </div>
           </div>
 
-          <div className="form-group">
+          <div className={styles.formGroup}>
             <label htmlFor="status">Status</label>
             <Dropdown
               value={formData.status || "Alive"}
@@ -205,12 +205,12 @@ const AddPlantPage = () => {
           </div>
         </div>
 
-        <div className="form-section">
+        <div className={styles.formSection}>
           <h3>Purchase Information</h3>
 
-          <div className="form-group">
+          <div className={styles.formGroup}>
             <label htmlFor="purchased_from">Purchased From</label>
-            <div className="tag-input-group">
+            <div className={styles.tagInputGroup}>
               <Dropdown
                 value={formData.purchased_from || ""}
                 onChange={(value) =>
@@ -222,7 +222,7 @@ const AddPlantPage = () => {
                 ]}
                 placeholder="Select or add new"
               />
-              <div className="new-tag-input">
+              <div className={styles.newTagInput}>
                 <input
                   type="text"
                   placeholder="Add new tag"
@@ -243,35 +243,35 @@ const AddPlantPage = () => {
             </div>
           </div>
 
-          <div className="form-row">
-            <div className="form-group">
+          <div className={styles.formRow}>
+            <div className={styles.formGroup}>
               <label>Purchased When</label>
               <DatePicker
                 selected={purchasedWhenDate}
                 onChange={(date) => setPurchasedWhenDate(date)}
                 dateFormat="dd, MMM yyyy"
                 placeholderText="Select date"
-                className="date-picker"
+                className={styles.datePicker}
               />
             </div>
 
-            <div className="form-group">
+            <div className={styles.formGroup}>
               <label>Received When</label>
               <DatePicker
                 selected={receivedWhenDate}
                 onChange={(date) => setReceivedWhenDate(date)}
                 dateFormat="dd, MMM yyyy"
                 placeholderText="Select date"
-                className="date-picker"
+                className={styles.datePicker}
               />
             </div>
           </div>
         </div>
 
-        <div className="form-section">
+        <div className={styles.formSection}>
           <h3>Profile Photo</h3>
 
-          <div className="form-group">
+          <div className={styles.formGroup}>
             <input
               type="file"
               accept="image/*"
@@ -280,14 +280,14 @@ const AddPlantPage = () => {
             />
             {uploading && <p>Uploading...</p>}
             {formData.profile_photo && (
-              <div className="photo-preview">
+              <div className={styles.photoPreview}>
                 <img src={formData.profile_photo} alt="Profile preview" />
               </div>
             )}
           </div>
         </div>
 
-        <div className="form-actions">
+        <div className={styles.formActions}>
           <button
             type="button"
             onClick={() => navigate("/")}
