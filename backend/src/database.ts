@@ -137,6 +137,28 @@ function initializeDatabase() {
       }
     });
 
+    // Migration: Sync existing purchased_from values to tags table
+    db.all(`SELECT DISTINCT purchased_from FROM plants WHERE purchased_from IS NOT NULL AND purchased_from != ''`, [], (err, rows: any[]) => {
+      if (err) {
+        console.error('Error fetching purchased_from values:', err);
+        return;
+      }
+      
+      if (rows && rows.length > 0) {
+        const tagStmt = db.prepare(`INSERT OR IGNORE INTO tags (tag_name, tag_type) VALUES (?, 'purchased_from')`);
+        
+        rows.forEach(row => {
+          if (row.purchased_from) {
+            tagStmt.run(row.purchased_from);
+          }
+        });
+        
+        tagStmt.finalize(() => {
+          console.log(`Synced ${rows.length} purchased_from values to tags table`);
+        });
+      }
+    });
+
     console.log('Database initialized successfully');
   });
 }

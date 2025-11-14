@@ -202,6 +202,32 @@ router.post('/import', upload.single('csv'), async (req: Request, res: Response)
           profile_photo: profilePhoto || undefined,
         };
         
+        // Add purchased_from to tags table if it doesn't exist
+        if (plant.purchased_from) {
+          await new Promise<void>((resolve, reject) => {
+            const checkTagQuery = `SELECT id FROM tags WHERE tag_name = ? AND tag_type = 'purchased_from'`;
+            db.get(checkTagQuery, [plant.purchased_from], (err, row) => {
+              if (err) {
+                reject(err);
+                return;
+              }
+              
+              if (!row) {
+                // Tag doesn't exist, create it
+                const insertTagQuery = `INSERT INTO tags (tag_name, tag_type) VALUES (?, 'purchased_from')`;
+                db.run(insertTagQuery, [plant.purchased_from], (insertErr) => {
+                  if (insertErr) {
+                    console.warn(`Failed to add tag "${plant.purchased_from}":`, insertErr);
+                  }
+                  resolve();
+                });
+              } else {
+                resolve();
+              }
+            });
+          });
+        }
+        
         // Insert plant into database
         await new Promise<void>((resolve, reject) => {
           const query = `
