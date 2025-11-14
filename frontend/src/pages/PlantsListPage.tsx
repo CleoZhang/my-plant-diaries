@@ -302,7 +302,7 @@ const PlantCard = ({
           {plant.last_watered ? (
             <div className={styles.lastWateredContainer}>
               <p className={styles.lastWatered}>
-                💧 Last watered:
+                💧
                 {daysSinceWatered !== null && (
                   <span className={styles.daysAgo}>
                     {" "}
@@ -366,9 +366,8 @@ const PlantRow = ({
       <td>
         {plant.last_watered ? (
           <>
-            {formatDate(plant.last_watered)}
             {daysSinceWatered !== null && (
-              <span className="text-muted"> ({daysSinceWatered}d ago)</span>
+              <span className="text-muted"> {daysSinceWatered} days ago</span>
             )}
           </>
         ) : (
