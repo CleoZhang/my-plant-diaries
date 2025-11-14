@@ -270,7 +270,7 @@ async function processPlantFolder(db: sqlite3.Database, folder: PlantFolder): Pr
         if (!photoExists) {
           // Copy photo to uploads folder
           const plantNameForPath = folder.plantName.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_-]/g, '');
-          const uploadsDir = path.join(__dirname, '../../../uploads', plantNameForPath);
+          const uploadsDir = path.join(__dirname, '../../uploads', plantNameForPath);
           
           if (!fs.existsSync(uploadsDir)) {
             fs.mkdirSync(uploadsDir, { recursive: true });
