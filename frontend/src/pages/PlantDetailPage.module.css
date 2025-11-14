@@ -244,6 +244,13 @@
   background-color: var(--surface);
 }
 
+.emptyMessage {
+  padding: var(--spacing-lg);
+  text-align: center;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
 /* Events Section */
 .eventsSection {
   background: white;
@@ -279,7 +286,7 @@
   font-size: 1.5rem;
 }
 
-.eventTypeBtn .name {
+.eventTypeName {
   font-size: 0.75rem;
   font-weight: 500;
 }
@@ -576,6 +583,10 @@
   .eventTypeSelector {
     padding: var(--spacing-sm);
     margin-bottom: var(--spacing-md);
+  }
+
+  .eventTypeName {
+    display: none;
   }
 
   .calendarContainer {

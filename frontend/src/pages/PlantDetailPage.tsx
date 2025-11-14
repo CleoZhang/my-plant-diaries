@@ -505,7 +505,7 @@ const PlantDetailPage = () => {
                 </div>
 
                 {photos.length === 0 && (
-                  <p className="text-muted">
+                  <p className={styles.emptyMessage}>
                     No photos yet. Upload some to track your plant's growth!
                   </p>
                 )}
@@ -536,7 +536,7 @@ const PlantDetailPage = () => {
                   onClick={() => setSelectedEventType(eventType.name)}
                 >
                   <span className="emoji">{eventType.emoji}</span>
-                  <span className="name">{eventType.name}</span>
+                  <span className={styles.eventTypeName}>{eventType.name}</span>
                 </button>
               ))}
             <button
@@ -544,10 +544,10 @@ const PlantDetailPage = () => {
               className={`${styles.eventTypeBtn} ${
                 selectedEventType === "All events" ? styles.active : ""
               }`}
-              onClick={() => setSelectedEventType("All events")}
+              onClick={() => setSelectedEventType("All efgcvents")}
             >
               <span className="emoji">📅</span>
-              <span className="name">All events</span>
+              <span className={styles.eventTypeName}>All events</span>
             </button>
           </div>
 
@@ -848,7 +848,7 @@ const PlantDetailPage = () => {
             </div>
 
             {photos.length === 0 && (
-              <p className="text-muted">
+              <p className={styles.emptyMessage}>
                 No photos yet. Upload some to track your plant's growth!
               </p>
             )}
