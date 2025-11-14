@@ -159,9 +159,9 @@ const PlantDetailPage = () => {
 
   return (
     <div className={`container ${styles.plantDetailPage}`}>
-      <div>
+      <div className="page-header">
         <h2>{plant.name}</h2>
-        <div className="header-actions">
+        <div className={styles.headerActions}>
           <Link to={`/plants/${id}/edit`} className="btn btn-secondary">
             Edit Plant
           </Link>
@@ -323,9 +323,10 @@ const PlantDetailPage = () => {
               onClickDay={handleDateClick}
               value={selectedDate}
               tileClassName={tileClassName}
+              className={styles.reactCalendar}
             />
 
-            <div className="events-list">
+            <div className={styles.eventsList}>
               <h4>Recent {selectedEventType} Events</h4>
               {events.length === 0 ? (
                 <p className="text-muted">
@@ -345,7 +346,7 @@ const PlantDetailPage = () => {
                           </span>
                         )}
                         <button
-                          className="btn-icon delete-btn"
+                          className="btn-icon"
                           onClick={() => handleDeleteEvent(event.id!)}
                         >
                           ×

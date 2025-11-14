@@ -264,7 +264,7 @@ const PlantCard = ({
       </div>
       <div className={styles.plantCardActions}>
         <button
-          className="btn-icon delete-btn"
+          className={`btn-icon ${styles.deleteBtn}`}
           onClick={(e) => {
             e.preventDefault();
             if (plant.id) onDelete(plant.id);
@@ -315,7 +315,7 @@ const PlantRow = ({
       <td>{plant.purchased_from || "-"}</td>
       <td>
         <button
-          className="btn-icon delete-btn"
+          className={`btn-icon ${styles.deleteBtn}`}
           onClick={() => plant.id && onDelete(plant.id)}
         >
           🗑️
