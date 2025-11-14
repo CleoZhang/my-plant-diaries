@@ -377,6 +377,14 @@
     padding: var(--spacing-xs) var(--spacing-sm);
   }
 
+  .addPlantText {
+    display: none;
+  }
+
+  .addPlantBtn {
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+
   .controls {
     flex-direction: row;
     align-items: center;

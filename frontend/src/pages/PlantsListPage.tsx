@@ -267,7 +267,7 @@ const PlantsListPage = () => {
       )}
       <div className={`container ${styles.plantsListPage}`}>
         <div className={styles.pageHeader}>
-          <h2>My Plants</h2>
+          <h2>My Plants ({plants.length})</h2>
           <div className={styles.headerActions}>
             <input
               type="file"
@@ -287,8 +287,12 @@ const PlantsListPage = () => {
                 {isImporting ? " Importing..." : " Import CSV"}
               </span>
             </button>
-            <Link to="/plants/new" className="btn btn-primary">
-              + Add Plant
+            <Link
+              to="/plants/new"
+              className={`btn btn-primary ${styles.addPlantBtn}`}
+            >
+              <span className={styles.addPlantIcon}>+</span>
+              <span className={styles.addPlantText}> Add Plant</span>
             </Link>
           </div>
         </div>
