@@ -1,0 +1,52 @@
+import express from 'express';
+import cors from 'cors';
+import path from 'path';
+import dotenv from 'dotenv';
+
+// Import routes
+import plantsRouter from './routes/plants';
+import eventsRouter from './routes/events';
+import photosRouter from './routes/photos';
+import uploadRouter from './routes/upload';
+import tagsRouter from './routes/tags';
+import eventTypesRouter from './routes/eventTypes';
+
+// Load environment variables
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Serve uploaded files statically
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+// API Routes
+app.use('/api/plants', plantsRouter);
+app.use('/api/events', eventsRouter);
+app.use('/api/photos', photosRouter);
+app.use('/api/upload', uploadRouter);
+app.use('/api/tags', tagsRouter);
+app.use('/api/event-types', eventTypesRouter);
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', message: 'My Plant Diaries API is running' });
+});
+
+// Error handling middleware
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something went wrong!', message: err.message });
+});
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
+
+export default app;

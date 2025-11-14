@@ -1,0 +1,10 @@
+# My Plant Diaries
+
+node_modules
+dist
+.DS_Store
+*.log
+.env
+database.sqlite
+uploads/*
+!uploads/.gitkeep
