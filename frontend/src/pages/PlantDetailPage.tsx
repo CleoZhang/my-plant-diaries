@@ -29,6 +29,8 @@ const PlantDetailPage = () => {
   const [showPhotoGallery, setShowPhotoGallery] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [editingPhotoId, setEditingPhotoId] = useState<number | null>(null);
+  const [editingPhotoDate, setEditingPhotoDate] = useState<string>("");
 
   useEffect(() => {
     if (id) {
@@ -121,11 +123,11 @@ const PlantDetailPage = () => {
       const filesArray = Array.from(files);
       const uploadRes = await uploadAPI.multiple(filesArray);
 
-      const photoPromises = uploadRes.data.map((file) =>
+      const photoPromises = uploadRes.data.map((file: any) =>
         photosAPI.create({
           plant_id: parseInt(id),
           photo_path: file.path,
-          taken_at: new Date().toISOString(),
+          taken_at: file.takenAt || new Date().toISOString(),
         })
       );
 
@@ -137,6 +139,36 @@ const PlantDetailPage = () => {
     } finally {
       setUploading(false);
     }
+  };
+
+  const handleEditPhotoDate = (photoId: number, currentDate: string) => {
+    setEditingPhotoId(photoId);
+    setEditingPhotoDate(currentDate ? currentDate.split("T")[0] : "");
+  };
+
+  const handleSavePhotoDate = async (photoId: number) => {
+    if (!editingPhotoDate) return;
+
+    try {
+      await photosAPI.update(photoId, {
+        taken_at: new Date(editingPhotoDate).toISOString(),
+      });
+
+      if (id) {
+        const photosRes = await photosAPI.getByPlantId(parseInt(id));
+        setPhotos(photosRes.data);
+      }
+
+      setEditingPhotoId(null);
+      setEditingPhotoDate("");
+    } catch (err) {
+      alert("Failed to update photo date");
+    }
+  };
+
+  const handleCancelEditPhotoDate = () => {
+    setEditingPhotoId(null);
+    setEditingPhotoDate("");
   };
 
   const getEventDatesSet = () => {
@@ -271,9 +303,43 @@ const PlantDetailPage = () => {
                         <p className={styles.photoCaption}>{photo.caption}</p>
                       )}
                       {photo.taken_at && (
-                        <p className={styles.photoDate}>
-                          {formatDate(photo.taken_at)}
-                        </p>
+                        <div className={styles.photoDate}>
+                          {editingPhotoId === photo.id ? (
+                            <div className={styles.dateEditor}>
+                              <input
+                                type="date"
+                                value={editingPhotoDate}
+                                onChange={(e) =>
+                                  setEditingPhotoDate(e.target.value)
+                                }
+                              />
+                              <button
+                                onClick={() => handleSavePhotoDate(photo.id!)}
+                              >
+                                Save
+                              </button>
+                              <button onClick={handleCancelEditPhotoDate}>
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <div className={styles.dateDisplay}>
+                              <span>{formatDate(photo.taken_at)}</span>
+                              <button
+                                className={styles.editDateBtn}
+                                onClick={() =>
+                                  handleEditPhotoDate(
+                                    photo.id!,
+                                    photo.taken_at!
+                                  )
+                                }
+                                title="Edit date"
+                              >
+                                ✏️
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       )}
                     </div>
                   ))}

@@ -150,6 +150,68 @@
   margin: 0;
 }
 
+.dateDisplay {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-xs);
+}
+
+.editDateBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  font-size: 0.875rem;
+  opacity: 0.6;
+  transition: var(--transition);
+}
+
+.editDateBtn:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.dateEditor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.dateEditor input[type="date"] {
+  padding: var(--spacing-xs);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+}
+
+.dateEditor button {
+  padding: var(--spacing-xs);
+  font-size: 0.75rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.dateEditor button:first-of-type {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+}
+
+.dateEditor button:first-of-type:hover {
+  background-color: var(--primary-dark);
+}
+
+.dateEditor button:last-of-type {
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+}
+
+.dateEditor button:last-of-type:hover {
+  background-color: var(--surface);
+}
+
 /* Events Section */
 .eventsSection {
   background: white;

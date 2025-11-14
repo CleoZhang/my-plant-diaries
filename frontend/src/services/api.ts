@@ -43,14 +43,14 @@ export const uploadAPI = {
   single: (file: File) => {
     const formData = new FormData();
     formData.append('photo', file);
-    return api.post<{ filename: string; path: string; size: number }>('/upload/single', formData, {
+    return api.post<{ filename: string; path: string; size: number; takenAt?: string }>('/upload/single', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
   multiple: (files: File[]) => {
     const formData = new FormData();
     files.forEach(file => formData.append('photos', file));
-    return api.post<Array<{ filename: string; path: string; size: number }>>('/upload/multiple', formData, {
+    return api.post<Array<{ filename: string; path: string; size: number; takenAt?: string }>>('/upload/multiple', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
