@@ -3,6 +3,7 @@ import db from '../database';
 import { Plant, PlantWithLastWatered, PlantPhoto } from '../types';
 import fs from 'fs';
 import path from 'path';
+import { deletePlantUploadFolder } from '../utils/uploadUtils';
 
 const router = Router();
 
@@ -136,58 +137,32 @@ router.put('/:id', (req: Request, res: Response) => {
 router.delete('/:id', (req: Request, res: Response) => {
   const { id } = req.params;
   
-  // First, get all photos associated with this plant
-  db.all('SELECT * FROM plant_photos WHERE plant_id = ?', [id], (err, photos: PlantPhoto[]) => {
+  // Get plant name to delete its folder
+  db.get('SELECT name FROM plants WHERE id = ?', [id], (err, plant: any) => {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
     }
+    
+    if (!plant) {
+      res.status(404).json({ error: 'Plant not found' });
+      return;
+    }
 
-    // Delete the physical photo files from uploads folder
-    photos.forEach((photo) => {
-      const filePath = path.join(__dirname, '../../uploads', path.basename(photo.photo_path));
-      if (fs.existsSync(filePath)) {
-        try {
-          fs.unlinkSync(filePath);
-          console.log(`Deleted photo file: ${filePath}`);
-        } catch (error) {
-          console.error(`Failed to delete photo file: ${filePath}`, error);
-        }
-      }
-    });
+    // Delete the plant's entire upload folder with all photos
+    deletePlantUploadFolder(plant.name);
 
-    // Get the profile photo if it exists
-    db.get('SELECT profile_photo FROM plants WHERE id = ?', [id], (err, plant: any) => {
+    // Now delete the plant from the database (CASCADE will delete related records)
+    db.run('DELETE FROM plants WHERE id = ?', [id], function(err) {
       if (err) {
         res.status(500).json({ error: err.message });
         return;
       }
-
-      // Delete the profile photo file if it exists
-      if (plant && plant.profile_photo) {
-        const profilePhotoPath = path.join(__dirname, '../../uploads', path.basename(plant.profile_photo));
-        if (fs.existsSync(profilePhotoPath)) {
-          try {
-            fs.unlinkSync(profilePhotoPath);
-            console.log(`Deleted profile photo file: ${profilePhotoPath}`);
-          } catch (error) {
-            console.error(`Failed to delete profile photo file: ${profilePhotoPath}`, error);
-          }
-        }
+      if (this.changes === 0) {
+        res.status(404).json({ error: 'Plant not found' });
+        return;
       }
-
-      // Now delete the plant from the database (CASCADE will delete related records)
-      db.run('DELETE FROM plants WHERE id = ?', [id], function(err) {
-        if (err) {
-          res.status(500).json({ error: err.message });
-          return;
-        }
-        if (this.changes === 0) {
-          res.status(404).json({ error: 'Plant not found' });
-          return;
-        }
-        res.json({ message: 'Plant deleted successfully' });
-      });
+      res.json({ message: 'Plant deleted successfully' });
     });
   });
 });

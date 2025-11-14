@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import convert from 'heic-convert';
 import exifParser from 'exif-parser';
+import { moveToPlantFolder } from '../utils/uploadUtils';
 
 const router = Router();
 
@@ -80,6 +81,16 @@ router.post('/single', upload.single('photo'), async (req: Request, res: Respons
     return;
   }
 
+  const plantName = req.body.plantName;
+  if (!plantName) {
+    // Clean up uploaded file
+    if (fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    res.status(400).json({ error: 'Plant name is required' });
+    return;
+  }
+
   try {
     let finalFilename = req.file.filename;
     let finalPath = req.file.path;
@@ -107,9 +118,12 @@ router.post('/single', upload.single('photo'), async (req: Request, res: Respons
       photoDate = photoDate || extractPhotoDate(finalPath);
     }
 
+    // Move file to plant-specific subfolder
+    const relativePath = moveToPlantFolder(finalPath, plantName, finalFilename);
+
     res.json({
       filename: finalFilename,
-      path: `/uploads/${finalFilename}`,
+      path: relativePath,
       size: finalSize,
       takenAt: photoDate || new Date().toISOString()
     });
@@ -127,6 +141,18 @@ router.post('/single', upload.single('photo'), async (req: Request, res: Respons
 router.post('/multiple', upload.array('photos', 10), async (req: Request, res: Response) => {
   if (!req.files || (req.files as Express.Multer.File[]).length === 0) {
     res.status(400).json({ error: 'No files uploaded' });
+    return;
+  }
+
+  const plantName = req.body.plantName;
+  if (!plantName) {
+    // Clean up uploaded files
+    (req.files as Express.Multer.File[]).forEach(file => {
+      if (fs.existsSync(file.path)) {
+        fs.unlinkSync(file.path);
+      }
+    });
+    res.status(400).json({ error: 'Plant name is required' });
     return;
   }
 
@@ -159,9 +185,12 @@ router.post('/multiple', upload.array('photos', 10), async (req: Request, res: R
           photoDate = photoDate || extractPhotoDate(finalPath);
         }
 
+        // Move file to plant-specific subfolder
+        const relativePath = moveToPlantFolder(finalPath, plantName, finalFilename);
+
         return {
           filename: finalFilename,
-          path: `/uploads/${finalFilename}`,
+          path: relativePath,
           size: finalSize,
           takenAt: photoDate || new Date().toISOString()
         };

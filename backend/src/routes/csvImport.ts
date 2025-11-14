@@ -5,6 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import db from '../database';
 import { Plant } from '../types';
+import { getPlantUploadFolder, sanitizePlantName, deletePlantUploadFolder } from '../utils/uploadUtils';
 
 const router = Router();
 
@@ -76,7 +77,7 @@ function extractFirstImage(filesMediaStr: string | undefined): string | null {
 }
 
 // Helper function to copy image from CSV folder to uploads folder
-function copyImageFromCsvFolder(imageName: string): string | null {
+function copyImageFromCsvFolder(imageName: string, plantName: string): string | null {
   if (!imageName) return null;
   
   const sourcePath = path.join(__dirname, '../../csv/My store-bought plants', imageName);
@@ -92,20 +93,19 @@ function copyImageFromCsvFolder(imageName: string): string | null {
   const ext = path.extname(imageName);
   const baseName = path.basename(imageName, ext);
   const newFilename = `csv_import_${timestamp}_${baseName}${ext}`;
-  const destPath = path.join(__dirname, '../../uploads', newFilename);
+  
+  // Get or create plant-specific upload folder
+  const plantFolder = getPlantUploadFolder(plantName);
+  const destPath = path.join(plantFolder, newFilename);
   
   try {
-    // Ensure uploads directory exists
-    const uploadsDir = path.join(__dirname, '../../uploads');
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-    }
-    
     // Copy the file
     fs.copyFileSync(sourcePath, destPath);
     console.log(`Copied image: ${imageName} -> ${newFilename}`);
     
-    return `/uploads/${newFilename}`;
+    // Return the relative path for database storage
+    const sanitized = sanitizePlantName(plantName);
+    return `/uploads/${sanitized}/${newFilename}`;
   } catch (error) {
     console.error(`Failed to copy image ${imageName}:`, error);
     return null;
@@ -131,24 +131,17 @@ router.post('/import', upload.single('csv'), async (req: Request, res: Response)
     // If clearExisting is true, delete all existing plants first
     if (clearExisting) {
       await new Promise<void>((resolve, reject) => {
-        // First, get all plants to delete their photos
-        db.all('SELECT id, profile_photo FROM plants', [], (err, plants: any[]) => {
+        // First, get all plants to delete their folders
+        db.all('SELECT id, name FROM plants', [], (err, plants: any[]) => {
           if (err) {
             reject(err);
             return;
           }
           
-          // Delete all plant photo files
+          // Delete all plant folders with their photos
           plants.forEach((plant) => {
-            if (plant.profile_photo) {
-              const filePath = path.join(__dirname, '../../uploads', path.basename(plant.profile_photo));
-              if (fs.existsSync(filePath)) {
-                try {
-                  fs.unlinkSync(filePath);
-                } catch (error) {
-                  console.error(`Failed to delete photo: ${filePath}`, error);
-                }
-              }
+            if (plant.name) {
+              deletePlantUploadFolder(plant.name);
             }
           });
           
@@ -193,7 +186,7 @@ router.post('/import', upload.single('csv'), async (req: Request, res: Response)
         let profilePhoto: string | null = null;
         
         if (firstImage) {
-          profilePhoto = copyImageFromCsvFolder(firstImage);
+          profilePhoto = copyImageFromCsvFolder(firstImage, plantName);
         }
         
         const plant: Plant = {

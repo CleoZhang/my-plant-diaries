@@ -40,16 +40,18 @@ export const photosAPI = {
 
 // Upload API
 export const uploadAPI = {
-  single: (file: File) => {
+  single: (file: File, plantName: string) => {
     const formData = new FormData();
     formData.append('photo', file);
+    formData.append('plantName', plantName);
     return api.post<{ filename: string; path: string; size: number; takenAt?: string }>('/upload/single', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
-  multiple: (files: File[]) => {
+  multiple: (files: File[], plantName: string) => {
     const formData = new FormData();
     files.forEach(file => formData.append('photos', file));
+    formData.append('plantName', plantName);
     return api.post<Array<{ filename: string; path: string; size: number; takenAt?: string }>>('/upload/multiple', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });

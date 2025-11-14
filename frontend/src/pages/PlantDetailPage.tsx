@@ -168,12 +168,12 @@ const PlantDetailPage = () => {
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files || !id) return;
+    if (!files || !id || !plant) return;
 
     setUploading(true);
     try {
       const filesArray = Array.from(files);
-      const uploadRes = await uploadAPI.multiple(filesArray);
+      const uploadRes = await uploadAPI.multiple(filesArray, plant.name);
 
       const photoPromises = uploadRes.data.map((file: any) =>
         photosAPI.create({

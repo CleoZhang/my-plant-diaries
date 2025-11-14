@@ -94,9 +94,14 @@ const AddPlantPage = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (!formData.name.trim()) {
+      showAlert("Please enter a plant name before uploading photos", "Error");
+      return;
+    }
+
     setUploading(true);
     try {
-      const response = await uploadAPI.single(file);
+      const response = await uploadAPI.single(file, formData.name);
       setFormData((prev) => ({
         ...prev,
         profile_photo: response.data.path,
