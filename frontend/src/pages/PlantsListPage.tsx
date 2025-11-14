@@ -296,7 +296,9 @@ const PlantsListPage = () => {
             </button>
             <Link
               to="/plants/new"
-              className={`btn btn-primary ${styles.addPlantBtn} ${isLoading ? 'disabled' : ''}`}
+              className={`btn btn-primary ${styles.addPlantBtn} ${
+                isLoading ? "disabled" : ""
+              }`}
               onClick={(e) => isLoading && e.preventDefault()}
             >
               <span className={styles.addPlantIcon}>+</span>

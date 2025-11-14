@@ -72,15 +72,27 @@ const Modal = ({
         <div className={styles.modalActions}>
           {type === "confirm" ? (
             <>
-              <button onClick={handleCancel} className="btn btn-secondary" disabled={isLoading}>
+              <button
+                onClick={handleCancel}
+                className="btn btn-secondary"
+                disabled={isLoading}
+              >
                 {title === "Replace all" ? "Keep existing" : cancelText}
               </button>
-              <button onClick={handleConfirm} className="btn btn-primary" disabled={isLoading}>
+              <button
+                onClick={handleConfirm}
+                className="btn btn-primary"
+                disabled={isLoading}
+              >
                 {confirmText}
               </button>
             </>
           ) : (
-            <button onClick={onClose} className="btn btn-primary" disabled={isLoading}>
+            <button
+              onClick={onClose}
+              className="btn btn-primary"
+              disabled={isLoading}
+            >
               {confirmText}
             </button>
           )}

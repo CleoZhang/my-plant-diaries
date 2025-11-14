@@ -523,7 +523,11 @@ const AddPlantPage = () => {
             >
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary" disabled={isLoading || uploading}>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={isLoading || uploading}
+            >
               {isEdit ? "Update Plant" : "Add Plant"}
             </button>
           </div>

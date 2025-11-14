@@ -18,7 +18,7 @@ function initializeDatabase() {
     db.run(`
       CREATE TABLE IF NOT EXISTS plants (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL UNIQUE,
+        name TEXT NOT NULL,
         alias TEXT,
         price REAL,
         delivery_fee REAL,
@@ -31,17 +31,6 @@ function initializeDatabase() {
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
-
-    // Add unique index on name for existing databases (idempotent)
-    db.run(`
-      CREATE UNIQUE INDEX IF NOT EXISTS idx_plants_name_unique ON plants(name)
-    `, (err) => {
-      if (err && !err.message.includes('already exists')) {
-        console.error('Error creating unique index on plant name:', err);
-      } else {
-        console.log('Unique index on plant name is set');
-      }
-    });
 
     // Add alias column if it doesn't exist (for existing databases)
     db.run(`
@@ -131,22 +120,22 @@ function initializeDatabase() {
 
     stmt.finalize();
 
-    // Migration: Remove "General Update" event type and all associated events
-    db.run(`DELETE FROM plant_events WHERE event_type = 'General Update'`, (err) => {
-      if (err) {
-        console.error('Error deleting General Update events:', err);
-      } else {
-        console.log('Removed General Update events');
-      }
-    });
+    // // Migration: Remove "General Update" event type and all associated events
+    // db.run(`DELETE FROM plant_events WHERE event_type = 'General Update'`, (err) => {
+    //   if (err) {
+    //     console.error('Error deleting General Update events:', err);
+    //   } else {
+    //     console.log('Removed General Update events');
+    //   }
+    // });
 
-    db.run(`DELETE FROM event_types WHERE name = 'General Update'`, (err) => {
-      if (err) {
-        console.error('Error deleting General Update event type:', err);
-      } else {
-        console.log('Removed General Update event type');
-      }
-    });
+    // db.run(`DELETE FROM event_types WHERE name = 'General Update'`, (err) => {
+    //   if (err) {
+    //     console.error('Error deleting General Update event type:', err);
+    //   } else {
+    //     console.log('Removed General Update event type');
+    //   }
+    // });
 
     // Migration: Sync existing purchased_from values to tags table
     db.all(`SELECT DISTINCT purchased_from FROM plants WHERE purchased_from IS NOT NULL AND purchased_from != ''`, [], (err, rows: any[]) => {

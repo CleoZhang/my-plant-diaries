@@ -342,7 +342,11 @@ const PlantDetailPage = () => {
               <div className={styles.plantAlias}> {plant.alias}</div>
             )}
           </h2>
-          <button onClick={() => navigate("/")} className="btn btn-secondary" disabled={isLoading || uploading}>
+          <button
+            onClick={() => navigate("/")}
+            className="btn btn-secondary"
+            disabled={isLoading || uploading}
+          >
             ←<span className={styles.backText}> Back to List</span>
           </button>
         </div>
@@ -503,7 +507,10 @@ const PlantDetailPage = () => {
                                 >
                                   Save
                                 </button>
-                                <button onClick={handleCancelEditPhotoDate} disabled={isLoading}>
+                                <button
+                                  onClick={handleCancelEditPhotoDate}
+                                  disabled={isLoading}
+                                >
                                   Cancel
                                 </button>
                               </div>
@@ -695,7 +702,11 @@ const PlantDetailPage = () => {
                 >
                   Cancel
                 </button>
-                <button onClick={handleAddEvent} className="btn btn-primary" disabled={isLoading}>
+                <button
+                  onClick={handleAddEvent}
+                  className="btn btn-primary"
+                  disabled={isLoading}
+                >
                   Add Event
                 </button>
               </div>
@@ -860,7 +871,10 @@ const PlantDetailPage = () => {
                             >
                               Save
                             </button>
-                            <button onClick={handleCancelEditPhotoDate} disabled={isLoading}>
+                            <button
+                              onClick={handleCancelEditPhotoDate}
+                              disabled={isLoading}
+                            >
                               Cancel
                             </button>
                           </div>
