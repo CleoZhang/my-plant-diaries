@@ -84,6 +84,19 @@
   margin-top: var(--spacing-xl);
 }
 
+/* Validation Styles */
+.inputError {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.errorText {
+  display: block;
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: var(--spacing-xs);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .formRow {

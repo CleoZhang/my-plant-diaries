@@ -35,6 +35,10 @@ const AddPlantPage = () => {
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState("");
   const [loading, setLoading] = useState(isEdit);
+  const [numberErrors, setNumberErrors] = useState<{
+    price?: string;
+    delivery_fee?: string;
+  }>({});
   const { modalState, showAlert, closeModal } = useModal();
 
   useEffect(() => {
@@ -85,9 +89,53 @@ const AddPlantPage = () => {
 
   const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+
+    // Clear error for this field
+    setNumberErrors((prev) => ({
+      ...prev,
+      [name]: undefined,
+    }));
+
+    // If empty, set to undefined
+    if (!value || value.trim() === "") {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: undefined,
+      }));
+      return;
+    }
+
+    // Validate that it's a valid number
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) {
+      setNumberErrors((prev) => ({
+        ...prev,
+        [name]: "Please enter a valid number",
+      }));
+      setFormData((prev) => ({
+        ...prev,
+        [name]: undefined,
+      }));
+      return;
+    }
+
+    // Validate that it's not negative
+    if (numValue < 0) {
+      setNumberErrors((prev) => ({
+        ...prev,
+        [name]: "Value cannot be negative",
+      }));
+      setFormData((prev) => ({
+        ...prev,
+        [name]: undefined,
+      }));
+      return;
+    }
+
+    // Valid number, update form data
     setFormData((prev) => ({
       ...prev,
-      [name]: value ? parseFloat(value) : undefined,
+      [name]: numValue,
     }));
   };
 
@@ -130,8 +178,39 @@ const AddPlantPage = () => {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === "Enter" && e.target instanceof HTMLElement) {
+      e.preventDefault();
+
+      // Get all focusable elements in the form
+      const form = e.currentTarget;
+      const focusableElements = Array.from(
+        form.querySelectorAll(
+          "input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])"
+        )
+      ) as HTMLElement[];
+
+      // Find the current element's index
+      const currentIndex = focusableElements.indexOf(e.target as HTMLElement);
+
+      // Focus on the next element, if it exists
+      if (currentIndex !== -1 && currentIndex < focusableElements.length - 1) {
+        focusableElements[currentIndex + 1].focus();
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Check if there are any number validation errors
+    if (Object.values(numberErrors).some((error) => error)) {
+      showAlert(
+        "Please fix all validation errors before submitting",
+        "Validation Error"
+      );
+      return;
+    }
 
     const plantData = {
       ...formData,
@@ -162,7 +241,11 @@ const AddPlantPage = () => {
           <h2>{isEdit ? "Edit Plant" : "Add New Plant"}</h2>
         </div>
 
-        <form onSubmit={handleSubmit} className={styles.plantForm}>
+        <form
+          onSubmit={handleSubmit}
+          onKeyDown={handleKeyDown}
+          className={styles.plantForm}
+        >
           <div className={styles.formSection}>
             <h3>Basic Information</h3>
 
@@ -198,9 +281,14 @@ const AddPlantPage = () => {
                   id="price"
                   name="price"
                   step="0.01"
+                  min="0"
                   value={formData.price || ""}
                   onChange={handleNumberChange}
+                  className={numberErrors.price ? styles.inputError : ""}
                 />
+                {numberErrors.price && (
+                  <span className={styles.errorText}>{numberErrors.price}</span>
+                )}
               </div>
 
               <div className={styles.formGroup}>
@@ -210,9 +298,16 @@ const AddPlantPage = () => {
                   id="delivery_fee"
                   name="delivery_fee"
                   step="0.01"
+                  min="0"
                   value={formData.delivery_fee || ""}
                   onChange={handleNumberChange}
+                  className={numberErrors.delivery_fee ? styles.inputError : ""}
                 />
+                {numberErrors.delivery_fee && (
+                  <span className={styles.errorText}>
+                    {numberErrors.delivery_fee}
+                  </span>
+                )}
               </div>
             </div>
 
