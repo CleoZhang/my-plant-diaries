@@ -15,10 +15,13 @@ import eventTypesRouter from './routes/eventTypes';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = Number(process.env.PORT) || 3001;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: '*', // Allow all origins during development
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -45,8 +48,10 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 });
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);
+  console.log(`Access locally: http://localhost:${PORT}`);
+  console.log(`Access from network: http://192.168.50.210:${PORT}`);
 });
 
 export default app;
