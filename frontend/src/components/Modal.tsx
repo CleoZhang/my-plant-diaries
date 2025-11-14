@@ -49,6 +49,18 @@ const Modal = ({
     onClose();
   };
 
+  const handleCancel = () => {
+    // Check if this is the CSV import scenario
+    if (title === "Replace all") {
+      // User chose "Keep existing" - trigger file picker without clearing
+      const performImport = (window as any).__performImportWithoutClearing;
+      if (performImport) {
+        performImport();
+      }
+    }
+    onClose();
+  };
+
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -57,8 +69,8 @@ const Modal = ({
         <div className={styles.modalActions}>
           {type === "confirm" ? (
             <>
-              <button onClick={onClose} className="btn btn-secondary">
-                {cancelText}
+              <button onClick={handleCancel} className="btn btn-secondary">
+                {title === "Replace all" ? "Keep existing" : cancelText}
               </button>
               <button onClick={handleConfirm} className="btn btn-primary">
                 {confirmText}

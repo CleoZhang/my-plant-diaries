@@ -73,4 +73,21 @@ export const eventTypesAPI = {
   delete: (id: number) => api.delete(`/event-types/${id}`),
 };
 
+// CSV Import API
+export const csvImportAPI = {
+  import: (file: File, clearExisting: boolean = false) => {
+    const formData = new FormData();
+    formData.append('csv', file);
+    formData.append('clearExisting', clearExisting.toString());
+    return api.post<{
+      success: boolean;
+      message: string;
+      stats: { total: number; success: number; errors: number };
+      errors?: string[];
+    }>('/csv/import', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+};
+
 export default api;

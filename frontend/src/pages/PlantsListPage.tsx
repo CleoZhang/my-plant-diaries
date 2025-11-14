@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { plantsAPI, tagsAPI, eventsAPI } from "../services/api";
+import { plantsAPI, tagsAPI, eventsAPI, csvImportAPI } from "../services/api";
 import { Plant, ViewMode, SortField, SortOrder } from "../types";
 import { getDaysSinceWatered } from "../utils/dateUtils";
 import { getPlantPhotoUrl } from "../utils/constants";
@@ -25,6 +25,8 @@ const PlantsListPage = () => {
   const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const { modalState, showAlert, showConfirm, closeModal } = useModal();
+  const [isImporting, setIsImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchPlants();
@@ -166,6 +168,83 @@ const PlantsListPage = () => {
     );
   };
 
+  const handleImportCSV = () => {
+    // If there are existing plants, ask if they want to clear them BEFORE showing file picker
+    if (plants.length > 0) {
+      showConfirm(
+        `You have ${plants.length} existing plants. Do you want to replace all existing plants or keep them?`,
+        async () => {
+          // User chose "Replace all" - store intent and open file picker
+          (window as any).__importClearExisting = true;
+          fileInputRef.current?.click();
+        },
+        "Replace all"
+      );
+      // Store the cancel action to keep existing
+      (window as any).__importClearExisting = false;
+      (window as any).__performImportWithoutClearing = () => {
+        fileInputRef.current?.click();
+      };
+    } else {
+      // No existing plants, just open file picker
+      (window as any).__importClearExisting = false;
+      fileInputRef.current?.click();
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate it's a CSV file
+    if (!file.name.endsWith(".csv")) {
+      showAlert("Please select a CSV file", "Invalid File");
+      return;
+    }
+
+    // Get the clearExisting flag that was set before file picker
+    const clearExisting = (window as any).__importClearExisting || false;
+    await performImport(file, clearExisting);
+  };
+
+  const performImport = async (file: File, clearExisting: boolean) => {
+    setIsImporting(true);
+
+    try {
+      const response = await csvImportAPI.import(file, clearExisting);
+
+      if (response.data.success) {
+        const { stats, errors } = response.data;
+        let message = `Successfully imported ${stats.success} out of ${stats.total} plants.`;
+
+        if (errors && errors.length > 0) {
+          message += `\n\nErrors:\n${errors.slice(0, 5).join("\n")}`;
+          if (errors.length > 5) {
+            message += `\n... and ${errors.length - 5} more errors`;
+          }
+        }
+
+        showAlert(message, "Import Complete");
+
+        // Refresh the plants list
+        await fetchPlants();
+      }
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message || err.message || "Failed to import CSV";
+      showAlert(`Failed to import CSV: ${errorMessage}`, "Error");
+    } finally {
+      setIsImporting(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      // Clean up window flags
+      delete (window as any).__importClearExisting;
+      delete (window as any).__performImportWithoutClearing;
+    }
+  };
+
   if (loading) return <div className="loading">Loading plants...</div>;
   if (error) return <div className="error">{error}</div>;
 
@@ -173,9 +252,26 @@ const PlantsListPage = () => {
     <div className={`container ${styles.plantsListPage}`}>
       <div className={styles.pageHeader}>
         <h2>My Plants</h2>
-        <Link to="/plants/new" className="btn btn-primary">
-          + Add Plant
-        </Link>
+        <div className={styles.headerActions}>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept=".csv"
+            style={{ display: "none" }}
+          />
+          <button
+            className="btn btn-secondary"
+            onClick={handleImportCSV}
+            disabled={isImporting}
+            title="Import plants from CSV file"
+          >
+            {isImporting ? "📥 Importing..." : "📥 Import CSV"}
+          </button>
+          <Link to="/plants/new" className="btn btn-primary">
+            + Add Plant
+          </Link>
+        </div>
       </div>
 
       <div className={styles.controls}>
@@ -321,7 +417,13 @@ const PlantsListPage = () => {
         message={modalState.message}
         type={modalState.type}
         onConfirm={modalState.onConfirm}
-        confirmText={modalState.type === "confirm" ? "Yes" : "OK"}
+        confirmText={
+          modalState.title === "Replace all"
+            ? "Replace all"
+            : modalState.type === "confirm"
+            ? "Yes"
+            : "OK"
+        }
       />
     </div>
   );
@@ -366,7 +468,7 @@ const PlantCard = ({
                 <span className={styles.daysAgo}>
                   {" "}
                   {isMobile
-                    ? `${daysSinceWatered}d ago`
+                    ? `${daysSinceWatered} days ago`
                     : `${daysSinceWatered} days ago`}
                 </span>
               )}
@@ -411,7 +513,7 @@ const PlantRow = ({
             {daysSinceWatered !== null && (
               <span className="text-muted">
                 {isMobile
-                  ? `${daysSinceWatered}d ago`
+                  ? `${daysSinceWatered} days`
                   : `${daysSinceWatered} days ago`}
               </span>
             )}

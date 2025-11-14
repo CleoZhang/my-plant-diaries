@@ -10,6 +10,7 @@ import photosRouter from './routes/photos';
 import uploadRouter from './routes/upload';
 import tagsRouter from './routes/tags';
 import eventTypesRouter from './routes/eventTypes';
+import csvImportRouter from './routes/csvImport';
 
 // Load environment variables
 dotenv.config();
@@ -35,6 +36,7 @@ app.use('/api/photos', photosRouter);
 app.use('/api/upload', uploadRouter);
 app.use('/api/tags', tagsRouter);
 app.use('/api/event-types', eventTypesRouter);
+app.use('/api/csv', csvImportRouter);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
