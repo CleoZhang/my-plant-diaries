@@ -49,5 +49,5 @@ export interface EventType {
 }
 
 export type ViewMode = 'list' | 'card';
-export type SortField = 'name' | 'purchased_when' | 'received_when' | 'last_watered';
+export type SortField = 'name' | 'alias' | 'purchased_when' | 'received_when' | 'last_watered';
 export type SortOrder = 'asc' | 'desc';

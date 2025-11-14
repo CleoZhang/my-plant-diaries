@@ -2,6 +2,22 @@
   padding: var(--spacing-lg);
 }
 
+.plantDetailPage :global(.page-header) {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.plantDetailPage :global(.page-header) h2 {
+  margin: 0;
+}
+
+.plantAlias {
+  color: var(--text-secondary);
+  font-weight: normal;
+  font-size: 0.85em;
+}
+
 .plantDetailLayout {
   display: grid;
   grid-template-columns: 1fr 2fr;
@@ -430,6 +446,11 @@
   margin-top: var(--spacing-lg);
 }
 
+/* Mobile Header - Hidden on desktop */
+.mobileHeader {
+  display: none;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .plantDetailLayout {
@@ -438,6 +459,225 @@
 }
 
 @media (max-width: 768px) {
+  .plantDetailPage :global(.page-header) {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+  }
+
+  .plantDetailPage :global(.page-header) h2 {
+    flex: 1;
+    margin: 0;
+    font-size: 1.5rem;
+  }
+
+  .plantDetailPage :global(.page-header) button {
+    flex-shrink: 0;
+  }
+
+  .plantDetailLayout {
+    margin-top: 4px;
+    gap: 4px;
+  }
+
+  /* Show mobile header */
+  .mobileHeader {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .mobileActionBtn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-md);
+    background-color: white;
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+    flex: 1;
+  }
+
+  .mobileActionBtn:hover {
+    background-color: var(--surface);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-light);
+  }
+
+  .actionIcon {
+    font-size: 1.5rem;
+  }
+
+  .actionLabel {
+    flex: 1;
+    text-align: left;
+  }
+
+  /* Hide desktop plant info and photo gallery sections on mobile */
+  .plantProfile {
+    display: none;
+  }
+
+  .plantInfoDetails {
+    display: none;
+  }
+
+  .photoGallerySection {
+    display: none;
+  }
+
+  /* Remove card styling from events section on mobile */
+  .eventsSection {
+    background: transparent;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+
+  .eventsSection h3 {
+    padding: 0 var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+  }
+
+  .eventTypeSelector {
+    padding: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+  }
+
+  .calendarContainer {
+    margin-top: var(--spacing-md);
+  }
+
+  .calendarHeader {
+    padding: 0 var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+  }
+
+  .reactCalendar {
+    padding: var(--spacing-sm);
+  }
+
+  .eventsList {
+    margin-top: var(--spacing-md);
+    padding-top: var(--spacing-md);
+  }
+
+  .eventsList h4 {
+    padding: 0 var(--spacing-sm);
+  }
+
+  .eventsList ul {
+    padding: 0 var(--spacing-sm);
+  }
+
+  /* Mobile modal styles */
+  .mobileModal {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 0;
+    max-width: 90vw;
+    max-height: 85vh;
+    width: 100%;
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .modalHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+  }
+
+  .modalHeader h3 {
+    margin: 0;
+    flex: 1;
+  }
+
+  .mobileModalProfilePhoto {
+    width: 100%;
+    padding: var(--spacing-lg);
+    padding-bottom: var(--spacing-md);
+    display: flex;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .mobileModalProfilePhoto img {
+    width: 100%;
+    max-width: 300px;
+    aspect-ratio: 1;
+    border-radius: var(--radius-md);
+    object-fit: cover;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .closeModalBtn {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+    margin-left: var(--spacing-sm);
+  }
+
+  .closeModalBtn:hover {
+    background-color: var(--surface);
+    color: var(--text-primary);
+  }
+
+  .mobileModal .infoContent {
+    padding: var(--spacing-lg);
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .mobileModal .photoUpload {
+    padding: var(--spacing-lg);
+    padding-bottom: var(--spacing-sm);
+    flex-shrink: 0;
+  }
+
+  .mobileModal .photoGrid {
+    padding: 0 var(--spacing-lg) var(--spacing-lg);
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .mobileModal .text-muted {
+    padding: 0 var(--spacing-lg) var(--spacing-lg);
+  }
+
+  .profilePhoto {
+    height: 200px;
+  }
+
   .eventTypeSelector {
     justify-content: center;
   }

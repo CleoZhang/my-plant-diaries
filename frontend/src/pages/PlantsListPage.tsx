@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { plantsAPI, tagsAPI, eventsAPI } from "../services/api";
 import { Plant, ViewMode, SortField, SortOrder } from "../types";
-import { formatDate, getDaysSinceWatered } from "../utils/dateUtils";
+import { getDaysSinceWatered } from "../utils/dateUtils";
 import { getPlantPhotoUrl } from "../utils/constants";
 import Dropdown from "../components/Dropdown";
 import WateringCanIcon from "../components/WateringCanIcon";
@@ -19,9 +19,10 @@ const PlantsListPage = () => {
   const [viewMode, setViewMode] = useState<ViewMode>("card");
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
-  const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [filterPurchasedFrom, setFilterPurchasedFrom] = useState<string>("all");
+  const [filterField, setFilterField] = useState<string>("status");
+  const [filterValue, setFilterValue] = useState<string>("Alive");
   const [tags, setTags] = useState<string[]>([]);
+  const [filtersExpanded, setFiltersExpanded] = useState(false);
   const { modalState, showAlert, showConfirm, closeModal } = useModal();
 
   useEffect(() => {
@@ -31,7 +32,7 @@ const PlantsListPage = () => {
 
   useEffect(() => {
     applyFiltersAndSort();
-  }, [plants, sortField, sortOrder, filterStatus, filterPurchasedFrom]);
+  }, [plants, sortField, sortOrder, filterField, filterValue]);
 
   const fetchPlants = async () => {
     try {
@@ -53,17 +54,40 @@ const PlantsListPage = () => {
     }
   };
 
+  const getFilterValueOptions = () => {
+    if (filterField === "none") {
+      return [{ value: "all", label: "Select a filter field first" }];
+    }
+
+    if (filterField === "status") {
+      return [
+        { value: "all", label: "All" },
+        { value: "Alive", label: "Alive" },
+        { value: "Dead", label: "Dead" },
+        { value: "Binned", label: "Binned" },
+        { value: "GaveAway", label: "Gave Away" },
+      ];
+    }
+
+    if (filterField === "purchased_from") {
+      return [
+        { value: "all", label: "All" },
+        ...tags.map((tag) => ({ value: tag, label: tag })),
+      ];
+    }
+
+    return [{ value: "all", label: "All" }];
+  };
+
   const applyFiltersAndSort = () => {
     let filtered = [...plants];
 
-    // Apply filters
-    if (filterStatus !== "all") {
-      filtered = filtered.filter((plant) => plant.status === filterStatus);
-    }
-    if (filterPurchasedFrom !== "all") {
-      filtered = filtered.filter(
-        (plant) => plant.purchased_from === filterPurchasedFrom
-      );
+    // Apply filter
+    if (filterField !== "none" && filterValue !== "all") {
+      filtered = filtered.filter((plant) => {
+        const plantValue = plant[filterField as keyof Plant];
+        return plantValue === filterValue;
+      });
     }
 
     // Apply sorting
@@ -71,7 +95,7 @@ const PlantsListPage = () => {
       let aValue: any = a[sortField];
       let bValue: any = b[sortField];
 
-      if (sortField === "name") {
+      if (sortField === "name" || sortField === "alias") {
         aValue = (aValue || "").toLowerCase();
         bValue = (bValue || "").toLowerCase();
       }
@@ -152,74 +176,96 @@ const PlantsListPage = () => {
 
       <div className={styles.controls}>
         <div className={styles.viewToggle}>
-          <button
-            className={`btn-icon ${viewMode === "list" ? "active" : ""}`}
-            onClick={() => setViewMode("list")}
-            title="List view"
-          >
-            ☰
-          </button>
-          <button
-            className={`btn-icon ${viewMode === "card" ? "active" : ""}`}
-            onClick={() => setViewMode("card")}
-            title="Card view"
-          >
-            ▦
-          </button>
+          <div className={styles.toggleSwitch}>
+            <button
+              className={`${styles.toggleOption} ${
+                viewMode === "list" ? styles.active : ""
+              }`}
+              onClick={() => setViewMode("list")}
+              title="List view"
+            >
+              ☰
+            </button>
+            <button
+              className={`${styles.toggleOption} ${
+                viewMode === "card" ? styles.active : ""
+              }`}
+              onClick={() => setViewMode("card")}
+              title="Card view"
+            >
+              ▦
+            </button>
+            <div
+              className={`${styles.toggleSlider} ${
+                viewMode === "card" ? styles.slideRight : ""
+              }`}
+            ></div>
+          </div>
         </div>
 
-        <div className={styles.filters}>
-          <div className={styles.filterGroup}>
-            <label>Status:</label>
-            <Dropdown
-              value={filterStatus}
-              onChange={setFilterStatus}
-              options={[
-                { value: "all", label: "All" },
-                { value: "Alive", label: "Alive" },
-                { value: "Dead", label: "Dead" },
-                { value: "Binned", label: "Binned" },
-                { value: "GaveAway", label: "Gave Away" },
-              ]}
-              placeholder=""
-            />
+        <button
+          className={`btn-icon ${styles.filterToggle}`}
+          onClick={() => setFiltersExpanded(!filtersExpanded)}
+          title="Toggle filters"
+        >
+          🔍 {filtersExpanded ? "▲" : "▼"}
+        </button>
+
+        <div
+          className={`${styles.filters} ${
+            filtersExpanded ? styles.filtersExpanded : ""
+          }`}
+        >
+          <div className={styles.filterSection}>
+            <label className={styles.sectionLabel}>Filter by:</label>
+            <div className={styles.filterControls}>
+              <Dropdown
+                value={filterField}
+                onChange={setFilterField}
+                options={[
+                  { value: "none", label: "No Filter" },
+                  { value: "status", label: "Status" },
+                  { value: "purchased_from", label: "Purchased From" },
+                ]}
+                placeholder=""
+              />
+              <Dropdown
+                value={filterValue}
+                onChange={setFilterValue}
+                options={getFilterValueOptions()}
+                placeholder=""
+              />
+            </div>
           </div>
 
-          <div className={styles.filterGroup}>
-            <label>Purchased From:</label>
-            <Dropdown
-              value={filterPurchasedFrom}
-              onChange={setFilterPurchasedFrom}
-              options={[
-                { value: "all", label: "All" },
-                ...tags.map((tag) => ({ value: tag, label: tag })),
-              ]}
-              placeholder=""
-            />
+          <div className={styles.sortSection}>
+            <label className={styles.sectionLabel}>Sort by:</label>
+            <div className={styles.sortControls}>
+              <Dropdown
+                value={sortField}
+                onChange={(value) => setSortField(value as SortField)}
+                options={[
+                  { value: "name", label: "Name" },
+                  { value: "alias", label: "Alias" },
+                  { value: "purchased_when", label: "Purchase Date" },
+                  { value: "received_when", label: "Received Date" },
+                  { value: "last_watered", label: "Last Watered" },
+                ]}
+                placeholder=""
+              />
+              <button
+                className="btn-icon"
+                onClick={() =>
+                  setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                }
+                title={
+                  sortOrder === "asc" ? "Sort ascending" : "Sort descending"
+                }
+              >
+                {sortOrder === "asc" ? "↑" : "↓"}
+              </button>
+            </div>
           </div>
-
-          <div className={styles.filterGroup}>
-            <label>Sort By:</label>
-            <Dropdown
-              value={sortField}
-              onChange={(value) => setSortField(value as SortField)}
-              options={[
-                { value: "name", label: "Name" },
-                { value: "purchased_when", label: "Purchase Date" },
-                { value: "received_when", label: "Received Date" },
-                { value: "last_watered", label: "Last Watered" },
-              ]}
-              placeholder=""
-            />
-          </div>
-
-          <button
-            className="btn-icon"
-            onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-            title={sortOrder === "asc" ? "Sort descending" : "Sort ascending"}
-          >
-            {sortOrder === "asc" ? "↑" : "↓"}
-          </button>
         </div>
       </div>
 
@@ -245,7 +291,7 @@ const PlantsListPage = () => {
                 <th>Name</th>
                 <th>Status</th>
                 <th>Last Watered</th>
-                <th>Purchased From</th>
+                <th>Price</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -290,11 +336,13 @@ const PlantCard = ({
     <Link to={`/plants/${plant.id}`} className={`${styles.plantCard} card`}>
       <div className={styles.plantCardImage}>
         <img src={profilePhotoUrl} alt={plant.name} />
-        <span
-          className={`${styles.statusBadge} ${styles["status" + plant.status]}`}
+        <button
+          className={`btn-icon ${styles.waterBtn}`}
+          onClick={(e) => plant.id && onWater(e, plant.id)}
+          title="Water plant"
         >
-          {plant.status}
-        </span>
+          <WateringCanIcon />
+        </button>
       </div>
       <div className={styles.plantCardContent}>
         <h3>
@@ -305,37 +353,19 @@ const PlantCard = ({
         </h3>
         <div className={styles.plantCardInfo}>
           {plant.last_watered ? (
-            <div className={styles.lastWateredContainer}>
-              <p className={styles.lastWatered}>
-                💧
-                {daysSinceWatered !== null && (
-                  <span className={styles.daysAgo}>
-                    {" "}
-                    {daysSinceWatered} days ago
-                  </span>
-                )}
-              </p>
-              <button
-                className={`btn-icon ${styles.waterBtn}`}
-                onClick={(e) => plant.id && onWater(e, plant.id)}
-                title="Water plant"
-              >
-                <WateringCanIcon />
-              </button>
-            </div>
+            <p className={styles.lastWatered}>
+              💧
+              {daysSinceWatered !== null && (
+                <span className={styles.daysAgo}>
+                  {" "}
+                  {daysSinceWatered} days ago
+                </span>
+              )}
+            </p>
           ) : (
-            <div className={styles.lastWateredContainer}>
-              <p className={`${styles.lastWatered} text-muted`}>
-                💧 Not watered yet
-              </p>
-              <button
-                className={`btn-icon ${styles.waterBtn}`}
-                onClick={(e) => plant.id && onWater(e, plant.id)}
-                title="Water plant"
-              >
-                <WateringCanIcon />
-              </button>
-            </div>
+            <p className={`${styles.lastWatered} text-muted`}>
+              💧 Not watered yet
+            </p>
           )}
         </div>
       </div>
@@ -382,7 +412,11 @@ const PlantRow = ({
           <span className="text-muted">Not watered yet</span>
         )}
       </td>
-      <td>{plant.purchased_from || "-"}</td>
+      <td>
+        {plant.price || plant.delivery_fee
+          ? `£${((plant.price || 0) + (plant.delivery_fee || 0)).toFixed(2)}`
+          : "-"}
+      </td>
       <td>
         <button
           className={`btn-icon ${styles.waterBtn}`}

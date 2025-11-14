@@ -34,6 +34,10 @@ const PlantDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [editingPhotoId, setEditingPhotoId] = useState<number | null>(null);
   const [editingPhotoDate, setEditingPhotoDate] = useState<string>("");
+  const [showMobilePlantInfoModal, setShowMobilePlantInfoModal] =
+    useState(false);
+  const [showMobilePhotoGalleryModal, setShowMobilePhotoGalleryModal] =
+    useState(false);
   const { modalState, showAlert, showConfirm, closeModal } = useModal();
 
   useEffect(() => {
@@ -271,10 +275,33 @@ const PlantDetailPage = () => {
   return (
     <div className={`container ${styles.plantDetailPage}`}>
       <div className="page-header">
+        <h2>
+          {plant.name}
+          {plant.alias && (
+            <span className={styles.plantAlias}> ({plant.alias})</span>
+          )}
+        </h2>
         <button onClick={() => navigate("/")} className="btn btn-secondary">
           ← Back to List
         </button>
-        <h2>{plant.name}</h2>
+      </div>
+
+      {/* Mobile-only header */}
+      <div className={styles.mobileHeader}>
+        <button
+          className={styles.mobileActionBtn}
+          onClick={() => setShowMobilePlantInfoModal(true)}
+        >
+          <span className={styles.actionIcon}>📋</span>
+          <span className={styles.actionLabel}>Plant Info</span>
+        </button>
+        <button
+          className={styles.mobileActionBtn}
+          onClick={() => setShowMobilePhotoGalleryModal(true)}
+        >
+          <span className={styles.actionIcon}>📷</span>
+          <span className={styles.actionLabel}>Gallery</span>
+        </button>
       </div>
 
       <div className={styles.plantDetailLayout}>
@@ -295,7 +322,7 @@ const PlantDetailPage = () => {
             </div>
           </div>
 
-          <details className={styles.plantInfoDetails} open>
+          <details className={styles.plantInfoDetails}>
             <summary>
               <h3>Plant Information</h3>
               <Link
@@ -600,6 +627,193 @@ const PlantDetailPage = () => {
                 Add Event
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Plant Info Modal */}
+      {showMobilePlantInfoModal && (
+        <div
+          className={styles.modalOverlay}
+          onClick={() => setShowMobilePlantInfoModal(false)}
+        >
+          <div
+            className={styles.mobileModal}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.modalHeader}>
+              <h3>Plant Information</h3>
+              <Link
+                to={`/plants/${id}/edit`}
+                className={styles.editPlantLink}
+                title="Edit Plant"
+              >
+                ✏️
+              </Link>
+              <button
+                className={styles.closeModalBtn}
+                onClick={() => setShowMobilePlantInfoModal(false)}
+              >
+                ×
+              </button>
+            </div>
+            <div className={styles.mobileModalProfilePhoto}>
+              <img
+                src={getPlantPhotoUrl(plant.profile_photo)}
+                alt={plant.name}
+              />
+            </div>
+            <div className={styles.infoContent}>
+              <div className={styles.infoRow}>
+                <strong>Status:</strong>
+                <span
+                  className={`status-badge status-${plant.status?.toLowerCase()}`}
+                >
+                  {plant.status}
+                </span>
+              </div>
+              <div className={styles.infoRow}>
+                <strong>Name:</strong>
+                <span>{plant.name}</span>
+              </div>
+              {plant.alias && (
+                <div className={styles.infoRow}>
+                  <strong>Alias:</strong>
+                  <span>{plant.alias}</span>
+                </div>
+              )}
+              {plant.price && (
+                <div className={styles.infoRow}>
+                  <strong>Price:</strong>
+                  <span>£{plant.price.toFixed(2)}</span>
+                </div>
+              )}
+              {plant.delivery_fee && (
+                <div className={styles.infoRow}>
+                  <strong>Delivery Fee:</strong>
+                  <span>£{plant.delivery_fee.toFixed(2)}</span>
+                </div>
+              )}
+              {plant.purchased_from && (
+                <div className={styles.infoRow}>
+                  <strong>Purchased From:</strong>
+                  <span>{plant.purchased_from}</span>
+                </div>
+              )}
+              {plant.purchased_when && (
+                <div className={styles.infoRow}>
+                  <strong>Purchased When:</strong>
+                  <span>{formatDate(plant.purchased_when)}</span>
+                </div>
+              )}
+              {plant.received_when && (
+                <div className={styles.infoRow}>
+                  <strong>Received When:</strong>
+                  <span>{formatDate(plant.received_when)}</span>
+                </div>
+              )}
+              {plant.purchase_notes && (
+                <div className={styles.infoRow}>
+                  <strong>Purchase Notes:</strong>
+                  <span>{plant.purchase_notes}</span>
+                </div>
+              )}
+              {plant.last_watered && (
+                <div className={styles.infoRow}>
+                  <strong>Last Watered:</strong>
+                  <span>{formatDate(plant.last_watered)}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Photo Gallery Modal */}
+      {showMobilePhotoGalleryModal && (
+        <div
+          className={styles.modalOverlay}
+          onClick={() => setShowMobilePhotoGalleryModal(false)}
+        >
+          <div
+            className={styles.mobileModal}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.modalHeader}>
+              <h3>Photo Gallery</h3>
+              <button
+                className={styles.closeModalBtn}
+                onClick={() => setShowMobilePhotoGalleryModal(false)}
+              >
+                ×
+              </button>
+            </div>
+            <div className={styles.photoUpload}>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handlePhotoUpload}
+                disabled={uploading}
+              />
+              {uploading && <p>Uploading photos...</p>}
+            </div>
+
+            <div className={styles.photoGrid}>
+              {photos.map((photo) => (
+                <div key={photo.id} className={styles.photoItem}>
+                  <img
+                    src={photo.photo_path}
+                    alt={photo.caption || "Plant photo"}
+                  />
+                  {photo.caption && (
+                    <p className={styles.photoCaption}>{photo.caption}</p>
+                  )}
+                  {photo.taken_at && (
+                    <div className={styles.photoDate}>
+                      {editingPhotoId === photo.id ? (
+                        <div className={styles.dateEditor}>
+                          <input
+                            type="date"
+                            value={editingPhotoDate}
+                            onChange={(e) =>
+                              setEditingPhotoDate(e.target.value)
+                            }
+                          />
+                          <button
+                            onClick={() => handleSavePhotoDate(photo.id!)}
+                          >
+                            Save
+                          </button>
+                          <button onClick={handleCancelEditPhotoDate}>
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <div className={styles.dateDisplay}>
+                          <span>{formatDate(photo.taken_at)}</span>
+                          <button
+                            className={styles.editDateBtn}
+                            onClick={() =>
+                              handleEditPhotoDate(photo.id!, photo.taken_at!)
+                            }
+                            title="Edit date"
+                          >
+                            ✏️
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {photos.length === 0 && (
+              <p className="text-muted">
+                No photos yet. Upload some to track your plant's growth!
+              </p>
+            )}
           </div>
         </div>
       )}
