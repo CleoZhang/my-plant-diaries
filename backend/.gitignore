@@ -4,3 +4,5 @@ dist
 database.sqlite
 uploads/*
 !uploads/.gitkeep
+csv/*
+!csv/.gitkeep
