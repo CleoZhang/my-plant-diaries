@@ -231,6 +231,9 @@
   color: var(--text-secondary);
   font-weight: 400;
   font-size: 0.95em;
+  display: block;
+  margin-top: 0.25rem;
+  margin-bottom: var(--spacing-sm);
 }
 
 .plantCardInfo {

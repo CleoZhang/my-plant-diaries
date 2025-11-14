@@ -454,12 +454,8 @@ const PlantCard = ({
         </button>
       </div>
       <div className={styles.plantCardContent}>
-        <h3>
-          {plant.name}
-          {plant.alias && (
-            <span className={styles.plantAlias}> {plant.alias}</span>
-          )}
-        </h3>
+        <h3>{plant.name}</h3>
+        {plant.alias && <div className={styles.plantAlias}>{plant.alias}</div>}
         <div className={styles.plantCardInfo}>
           {plant.last_watered ? (
             <p className={styles.lastWatered}>
