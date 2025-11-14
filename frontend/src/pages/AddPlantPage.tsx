@@ -17,11 +17,13 @@ const AddPlantPage = () => {
 
   const [formData, setFormData] = useState<Plant>({
     name: "",
+    alias: "",
     price: undefined,
     delivery_fee: undefined,
     purchased_from: "",
     purchased_when: "",
     received_when: "",
+    purchase_notes: "",
     status: "Alive",
     profile_photo: "",
   });
@@ -69,7 +71,9 @@ const AddPlantPage = () => {
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -162,6 +166,18 @@ const AddPlantPage = () => {
               value={formData.name}
               onChange={handleInputChange}
               required
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label htmlFor="alias">Alias (Chinese name or nickname)</label>
+            <input
+              type="text"
+              id="alias"
+              name="alias"
+              value={formData.alias || ""}
+              onChange={handleInputChange}
+              placeholder="e.g., 绿萝, Lucky Plant"
             />
           </div>
 
@@ -268,6 +284,18 @@ const AddPlantPage = () => {
                 className={styles.datePicker}
               />
             </div>
+          </div>
+
+          <div className={styles.formGroup}>
+            <label htmlFor="purchase_notes">Purchase Notes</label>
+            <textarea
+              id="purchase_notes"
+              name="purchase_notes"
+              value={formData.purchase_notes || ""}
+              onChange={handleInputChange}
+              placeholder="e.g., 12cm pot, came with ceramic pot"
+              rows={3}
+            />
           </div>
         </div>
 

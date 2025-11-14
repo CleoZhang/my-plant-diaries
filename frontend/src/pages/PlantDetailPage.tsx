@@ -311,6 +311,12 @@ const PlantDetailPage = () => {
                 <strong>Name:</strong>
                 <span>{plant.name}</span>
               </div>
+              {plant.alias && (
+                <div className={styles.infoRow}>
+                  <strong>Alias:</strong>
+                  <span>{plant.alias}</span>
+                </div>
+              )}
               {plant.price && (
                 <div className={styles.infoRow}>
                   <strong>Price:</strong>
@@ -339,6 +345,12 @@ const PlantDetailPage = () => {
                 <div className={styles.infoRow}>
                   <strong>Received When:</strong>
                   <span>{formatDate(plant.received_when)}</span>
+                </div>
+              )}
+              {plant.purchase_notes && (
+                <div className={styles.infoRow}>
+                  <strong>Purchase Notes:</strong>
+                  <span>{plant.purchase_notes}</span>
                 </div>
               )}
               {plant.last_watered && (

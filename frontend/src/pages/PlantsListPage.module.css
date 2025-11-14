@@ -151,6 +151,12 @@
   font-size: 1.25rem;
 }
 
+.plantAlias {
+  color: var(--text-secondary);
+  font-weight: 400;
+  font-size: 0.95em;
+}
+
 .plantCardInfo {
   font-size: 0.875rem;
 }

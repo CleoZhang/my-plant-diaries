@@ -19,6 +19,7 @@ function initializeDatabase() {
       CREATE TABLE IF NOT EXISTS plants (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
+        alias TEXT,
         price REAL,
         delivery_fee REAL,
         purchased_from TEXT,
@@ -30,6 +31,24 @@ function initializeDatabase() {
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // Add alias column if it doesn't exist (for existing databases)
+    db.run(`
+      ALTER TABLE plants ADD COLUMN alias TEXT
+    `, (err) => {
+      if (err && !err.message.includes('duplicate column')) {
+        console.error('Error adding alias column:', err);
+      }
+    });
+
+    // Add purchase_notes column if it doesn't exist (for existing databases)
+    db.run(`
+      ALTER TABLE plants ADD COLUMN purchase_notes TEXT
+    `, (err) => {
+      if (err && !err.message.includes('duplicate column')) {
+        console.error('Error adding purchase_notes column:', err);
+      }
+    });
 
     // Plant events table
     db.run(`

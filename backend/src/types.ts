@@ -1,11 +1,13 @@
 export interface Plant {
   id?: number;
   name: string;
+  alias?: string;
   price?: number;
   delivery_fee?: number;
   purchased_from?: string;
   purchased_when?: string;
   received_when?: string;
+  purchase_notes?: string;
   status?: 'Alive' | 'Dead' | 'Binned' | 'GaveAway';
   profile_photo?: string;
   created_at?: string;

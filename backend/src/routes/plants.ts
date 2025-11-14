@@ -62,19 +62,21 @@ router.post('/', (req: Request, res: Response) => {
   
   const query = `
     INSERT INTO plants (
-      name, price, delivery_fee, purchased_from, 
-      purchased_when, received_when, status, profile_photo
+      name, alias, price, delivery_fee, purchased_from, 
+      purchased_when, received_when, purchase_notes, status, profile_photo
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   const params = [
     plant.name,
+    plant.alias || null,
     plant.price || null,
     plant.delivery_fee || null,
     plant.purchased_from || null,
     plant.purchased_when || null,
     plant.received_when || null,
+    plant.purchase_notes || null,
     plant.status || 'Alive',
     plant.profile_photo || null
   ];
@@ -95,19 +97,21 @@ router.put('/:id', (req: Request, res: Response) => {
   
   const query = `
     UPDATE plants 
-    SET name = ?, price = ?, delivery_fee = ?, purchased_from = ?,
-        purchased_when = ?, received_when = ?, status = ?, 
+    SET name = ?, alias = ?, price = ?, delivery_fee = ?, purchased_from = ?,
+        purchased_when = ?, received_when = ?, purchase_notes = ?, status = ?, 
         profile_photo = ?, updated_at = CURRENT_TIMESTAMP
     WHERE id = ?
   `;
 
   const params = [
     plant.name,
+    plant.alias || null,
     plant.price || null,
     plant.delivery_fee || null,
     plant.purchased_from || null,
     plant.purchased_when || null,
     plant.received_when || null,
+    plant.purchase_notes || null,
     plant.status || 'Alive',
     plant.profile_photo || null,
     id

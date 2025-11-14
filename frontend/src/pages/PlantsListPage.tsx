@@ -297,7 +297,12 @@ const PlantCard = ({
         </span>
       </div>
       <div className={styles.plantCardContent}>
-        <h3>{plant.name}</h3>
+        <h3>
+          {plant.name}
+          {plant.alias && (
+            <span className={styles.plantAlias}> ({plant.alias})</span>
+          )}
+        </h3>
         <div className={styles.plantCardInfo}>
           {plant.last_watered ? (
             <div className={styles.lastWateredContainer}>
@@ -354,6 +359,9 @@ const PlantRow = ({
       <td>
         <Link to={`/plants/${plant.id}`} className={styles.plantNameLink}>
           {plant.name}
+          {plant.alias && (
+            <span className={styles.plantAlias}> ({plant.alias})</span>
+          )}
         </Link>
       </td>
       <td>
