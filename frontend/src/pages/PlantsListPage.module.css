@@ -369,6 +369,14 @@
     gap: var(--spacing-md);
   }
 
+  .importText {
+    display: none;
+  }
+
+  .importBtn {
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+
   .controls {
     flex-direction: row;
     align-items: center;

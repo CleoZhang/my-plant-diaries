@@ -319,7 +319,7 @@ const PlantDetailPage = () => {
           <h2>
             {plant.name}
             {plant.alias && (
-              <span className={styles.plantAlias}> ({plant.alias})</span>
+              <div className={styles.plantAlias}> {plant.alias}</div>
             )}
           </h2>
           <button onClick={() => navigate("/")} className="btn btn-secondary">

@@ -277,12 +277,15 @@ const PlantsListPage = () => {
               style={{ display: "none" }}
             />
             <button
-              className="btn btn-secondary"
+              className={`btn btn-secondary ${styles.importBtn}`}
               onClick={handleImportCSV}
               disabled={isImporting}
               title="Import plants from CSV file"
             >
-              {isImporting ? "📥 Importing..." : "📥 Import CSV"}
+              <span className={styles.importIcon}>📥</span>
+              <span className={styles.importText}>
+                {isImporting ? " Importing..." : " Import CSV"}
+              </span>
             </button>
             <Link to="/plants/new" className="btn btn-primary">
               + Add Plant
