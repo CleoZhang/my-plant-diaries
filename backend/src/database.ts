@@ -18,7 +18,7 @@ function initializeDatabase() {
     db.run(`
       CREATE TABLE IF NOT EXISTS plants (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
+        name TEXT NOT NULL UNIQUE,
         alias TEXT,
         price REAL,
         delivery_fee REAL,
@@ -31,6 +31,17 @@ function initializeDatabase() {
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // Add unique index on name for existing databases (idempotent)
+    db.run(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_plants_name_unique ON plants(name)
+    `, (err) => {
+      if (err && !err.message.includes('already exists')) {
+        console.error('Error creating unique index on plant name:', err);
+      } else {
+        console.log('Unique index on plant name is set');
+      }
+    });
 
     // Add alias column if it doesn't exist (for existing databases)
     db.run(`

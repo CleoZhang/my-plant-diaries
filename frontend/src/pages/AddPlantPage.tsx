@@ -39,10 +39,14 @@ const AddPlantPage = () => {
     price?: string;
     delivery_fee?: string;
   }>({});
+  const [nameError, setNameError] = useState<string>("");
+  const [existingPlants, setExistingPlants] = useState<string[]>([]);
+  const [originalPlantName, setOriginalPlantName] = useState<string>("");
   const { modalState, showAlert, closeModal } = useModal();
 
   useEffect(() => {
     fetchTags();
+    fetchExistingPlantNames();
     if (isEdit && id) {
       fetchPlant(parseInt(id));
     }
@@ -53,6 +57,7 @@ const AddPlantPage = () => {
       const response = await plantsAPI.getById(plantId);
       const plant = response.data;
       setFormData(plant);
+      setOriginalPlantName(plant.name);
       if (plant.purchased_when) {
         setPurchasedWhenDate(new Date(plant.purchased_when));
       }
@@ -75,6 +80,43 @@ const AddPlantPage = () => {
     }
   };
 
+  const fetchExistingPlantNames = async () => {
+    try {
+      const response = await plantsAPI.getAll();
+      setExistingPlants(response.data.map((plant) => plant.name.toLowerCase()));
+    } catch (err) {
+      console.error("Failed to load plant names");
+    }
+  };
+
+  const validatePlantName = (name: string) => {
+    if (!name.trim()) {
+      setNameError("");
+      return true;
+    }
+
+    const normalizedName = name.toLowerCase().trim();
+    const originalNormalized = originalPlantName.toLowerCase().trim();
+
+    // If editing and the name hasn't changed, it's valid
+    if (isEdit && normalizedName === originalNormalized) {
+      setNameError("");
+      return true;
+    }
+
+    const isDuplicate = existingPlants.some(
+      (existingName) => existingName === normalizedName
+    );
+
+    if (isDuplicate) {
+      setNameError("A plant with this name already exists");
+      return false;
+    }
+
+    setNameError("");
+    return true;
+  };
+
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
@@ -85,6 +127,11 @@ const AddPlantPage = () => {
       ...prev,
       [name]: value,
     }));
+
+    // Validate plant name in real-time
+    if (name === "name") {
+      validatePlantName(value);
+    }
   };
 
   const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -212,6 +259,15 @@ const AddPlantPage = () => {
       return;
     }
 
+    // Validate plant name before submission
+    if (!validatePlantName(formData.name)) {
+      showAlert(
+        "A plant with this name already exists. Please choose a different name.",
+        "Duplicate Name"
+      );
+      return;
+    }
+
     const plantData = {
       ...formData,
       purchased_when: purchasedWhenDate ? toISODate(purchasedWhenDate) : "",
@@ -225,8 +281,17 @@ const AddPlantPage = () => {
         await plantsAPI.create(plantData);
       }
       navigate("/");
-    } catch (err) {
-      showAlert(`Failed to ${isEdit ? "update" : "create"} plant`, "Error");
+    } catch (err: any) {
+      // Handle 409 Conflict error for duplicate names
+      if (err.response && err.response.status === 409) {
+        showAlert(
+          "A plant with this name already exists. Please choose a different name.",
+          "Duplicate Name"
+        );
+        setNameError("A plant with this name already exists");
+      } else {
+        showAlert(`Failed to ${isEdit ? "update" : "create"} plant`, "Error");
+      }
     }
   };
 
@@ -258,7 +323,11 @@ const AddPlantPage = () => {
                 value={formData.name}
                 onChange={handleInputChange}
                 required
+                className={nameError ? styles.inputError : ""}
               />
+              {nameError && (
+                <span className={styles.errorText}>{nameError}</span>
+              )}
             </div>
 
             <div className={styles.formGroup}>

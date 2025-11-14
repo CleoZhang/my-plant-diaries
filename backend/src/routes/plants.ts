@@ -63,33 +63,50 @@ router.get('/:id', (req: Request, res: Response) => {
 router.post('/', (req: Request, res: Response) => {
   const plant: Plant = req.body;
   
-  const query = `
-    INSERT INTO plants (
-      name, alias, price, delivery_fee, purchased_from, 
-      purchased_when, received_when, purchase_notes, status, profile_photo
-    )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `;
-
-  const params = [
-    plant.name,
-    plant.alias || null,
-    plant.price || null,
-    plant.delivery_fee || null,
-    plant.purchased_from || null,
-    plant.purchased_when || null,
-    plant.received_when || null,
-    plant.purchase_notes || null,
-    plant.status || 'Alive',
-    plant.profile_photo || null
-  ];
-
-  db.run(query, params, function(err) {
+  // Check if plant with the same name already exists
+  db.get('SELECT id FROM plants WHERE name = ?', [plant.name], (err, existing: any) => {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
     }
-    res.status(201).json({ id: this.lastID, ...plant });
+    
+    if (existing) {
+      res.status(409).json({ error: 'A plant with this name already exists' });
+      return;
+    }
+    
+    const query = `
+      INSERT INTO plants (
+        name, alias, price, delivery_fee, purchased_from, 
+        purchased_when, received_when, purchase_notes, status, profile_photo
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    const params = [
+      plant.name,
+      plant.alias || null,
+      plant.price || null,
+      plant.delivery_fee || null,
+      plant.purchased_from || null,
+      plant.purchased_when || null,
+      plant.received_when || null,
+      plant.purchase_notes || null,
+      plant.status || 'Alive',
+      plant.profile_photo || null
+    ];
+
+    db.run(query, params, function(err) {
+      if (err) {
+        if (err.message.includes('UNIQUE constraint failed')) {
+          res.status(409).json({ error: 'A plant with this name already exists' });
+          return;
+        }
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      res.status(201).json({ id: this.lastID, ...plant });
+    });
   });
 });
 
@@ -98,38 +115,55 @@ router.put('/:id', (req: Request, res: Response) => {
   const { id } = req.params;
   const plant: Plant = req.body;
   
-  const query = `
-    UPDATE plants 
-    SET name = ?, alias = ?, price = ?, delivery_fee = ?, purchased_from = ?,
-        purchased_when = ?, received_when = ?, purchase_notes = ?, status = ?, 
-        profile_photo = ?, updated_at = CURRENT_TIMESTAMP
-    WHERE id = ?
-  `;
-
-  const params = [
-    plant.name,
-    plant.alias || null,
-    plant.price || null,
-    plant.delivery_fee || null,
-    plant.purchased_from || null,
-    plant.purchased_when || null,
-    plant.received_when || null,
-    plant.purchase_notes || null,
-    plant.status || 'Alive',
-    plant.profile_photo || null,
-    id
-  ];
-
-  db.run(query, params, function(err) {
+  // Check if another plant with the same name already exists (excluding current plant)
+  db.get('SELECT id FROM plants WHERE name = ? AND id != ?', [plant.name, id], (err, existing: any) => {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
     }
-    if (this.changes === 0) {
-      res.status(404).json({ error: 'Plant not found' });
+    
+    if (existing) {
+      res.status(409).json({ error: 'A plant with this name already exists' });
       return;
     }
-    res.json({ id, ...plant });
+    
+    const query = `
+      UPDATE plants 
+      SET name = ?, alias = ?, price = ?, delivery_fee = ?, purchased_from = ?,
+          purchased_when = ?, received_when = ?, purchase_notes = ?, status = ?, 
+          profile_photo = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `;
+
+    const params = [
+      plant.name,
+      plant.alias || null,
+      plant.price || null,
+      plant.delivery_fee || null,
+      plant.purchased_from || null,
+      plant.purchased_when || null,
+      plant.received_when || null,
+      plant.purchase_notes || null,
+      plant.status || 'Alive',
+      plant.profile_photo || null,
+      id
+    ];
+
+    db.run(query, params, function(err) {
+      if (err) {
+        if (err.message.includes('UNIQUE constraint failed')) {
+          res.status(409).json({ error: 'A plant with this name already exists' });
+          return;
+        }
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      if (this.changes === 0) {
+        res.status(404).json({ error: 'Plant not found' });
+        return;
+      }
+      res.json({ id, ...plant });
+    });
   });
 });
 
