@@ -191,11 +191,13 @@ router.post('/import', upload.single('csv'), async (req: Request, res: Response)
         
         const plant: Plant = {
           name: plantName,
+          alias: row['Alias'] || row['alias'] || undefined,
           price: parsePrice(row['Price'] || row['price']) || undefined,
           delivery_fee: parsePrice(row['Delivery fee'] || row['delivery_fee']) || undefined,
           purchased_from: row['Purchased from'] || row['purchased_from'] || undefined,
           purchased_when: parseDate(row['Purchased when'] || row['purchased_when']) || undefined,
           received_when: parseDate(row['Recieved when'] || row['received_when'] || row['Received when']) || undefined,
+          purchase_notes: row['Notes'] || row['notes'] || undefined,
           status: (row['Status'] || row['status'] || 'Alive') as Plant['status'],
           profile_photo: profilePhoto || undefined,
         };
@@ -204,19 +206,21 @@ router.post('/import', upload.single('csv'), async (req: Request, res: Response)
         await new Promise<void>((resolve, reject) => {
           const query = `
             INSERT INTO plants (
-              name, price, delivery_fee, purchased_from, 
-              purchased_when, received_when, status, profile_photo
+              name, alias, price, delivery_fee, purchased_from, 
+              purchased_when, received_when, purchase_notes, status, profile_photo
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `;
           
           const params = [
             plant.name,
+            plant.alias,
             plant.price,
             plant.delivery_fee,
             plant.purchased_from,
             plant.purchased_when,
             plant.received_when,
+            plant.purchase_notes,
             plant.status,
             plant.profile_photo,
           ];
