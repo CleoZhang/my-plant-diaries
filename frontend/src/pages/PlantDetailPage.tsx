@@ -13,6 +13,7 @@ import { formatDate, toISODate } from "../utils/dateUtils";
 import { getPlantPhotoUrl } from "../utils/constants";
 import Modal from "../components/Modal";
 import TrashIcon from "../components/TrashIcon";
+import EditIcon from "../components/EditIcon";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { useModal } from "../hooks/useModal";
 import "react-calendar/dist/Calendar.css";
@@ -371,7 +372,7 @@ const PlantDetailPage = () => {
                   className={styles.editPlantLink}
                   title="Edit Plant"
                 >
-                  ✏️
+                  <EditIcon />
                 </Link>
               </summary>
               <div className={styles.infoContent}>
@@ -496,7 +497,7 @@ const PlantDetailPage = () => {
                                   }
                                   title="Edit date"
                                 >
-                                  ✏️
+                                  <EditIcon />
                                 </button>
                               </div>
                             )}
@@ -684,14 +685,16 @@ const PlantDetailPage = () => {
               onClick={(e) => e.stopPropagation()}
             >
               <div className={styles.modalHeader}>
-                <h3>Plant Information</h3>
-                <Link
-                  to={`/plants/${id}/edit`}
-                  className={styles.editPlantLink}
-                  title="Edit Plant"
-                >
-                  ✏️
-                </Link>
+                <div className={styles.modalHeaderLeft}>
+                  <h3>Plant Information</h3>
+                  <Link
+                    to={`/plants/${id}/edit`}
+                    className={styles.editPlantLinkModal}
+                    title="Edit Plant"
+                  >
+                    <EditIcon size={20} />
+                  </Link>
+                </div>
                 <button
                   className={styles.closeModalBtn}
                   onClick={() => setShowMobilePlantInfoModal(false)}
@@ -699,13 +702,13 @@ const PlantDetailPage = () => {
                   ×
                 </button>
               </div>
-              <div className={styles.mobileModalProfilePhoto}>
-                <img
-                  src={getPlantPhotoUrl(plant.profile_photo)}
-                  alt={plant.name}
-                />
-              </div>
               <div className={styles.infoContent}>
+                <div className={styles.mobileModalProfilePhoto}>
+                  <img
+                    src={getPlantPhotoUrl(plant.profile_photo)}
+                    alt={plant.name}
+                  />
+                </div>
                 <div className={styles.infoRow}>
                   <strong>Status:</strong>
                   <span
@@ -840,7 +843,7 @@ const PlantDetailPage = () => {
                               }
                               title="Edit date"
                             >
-                              ✏️
+                              <EditIcon />
                             </button>
                           </div>
                         )}
