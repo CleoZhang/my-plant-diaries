@@ -12,7 +12,7 @@ A comprehensive full-stack application for tracking and managing your houseplant
 
 ### Event Tracking
 - **Calendar View**: Visual calendar for each plant showing all events
-- **Event Types**: Water 💧, Trim ✂️, Repot 🪴, Propagate 🌱, General Update 📝, New Leaf 🍃
+- **Event Types**: Water 💧, Trim ✂️, Repot 🪴, Propagate 🌱, Other 📝, New Leaf 🍃
 - **Quick Add/Delete**: Click on calendar dates to add or remove events
 - **Event History**: View recent events for each type
 - **Custom Events**: Support for adding custom event types (extensible)

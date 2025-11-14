@@ -6,7 +6,6 @@ import { getDaysSinceWatered } from "../utils/dateUtils";
 import { getPlantPhotoUrl } from "../utils/constants";
 import Dropdown from "../components/Dropdown";
 import WateringCanIcon from "../components/WateringCanIcon";
-import TrashIcon from "../components/TrashIcon";
 import FilterIcon from "../components/FilterIcon";
 import Modal from "../components/Modal";
 import { useModal } from "../hooks/useModal";
@@ -24,11 +23,21 @@ const PlantsListPage = () => {
   const [filterValue, setFilterValue] = useState<string>("Alive");
   const [tags, setTags] = useState<string[]>([]);
   const [filtersExpanded, setFiltersExpanded] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const { modalState, showAlert, showConfirm, closeModal } = useModal();
 
   useEffect(() => {
     fetchPlants();
     fetchTags();
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   useEffect(() => {
@@ -114,53 +123,47 @@ const PlantsListPage = () => {
     setFilteredPlants(filtered);
   };
 
-  const handleDeletePlant = async (id: number) => {
-    showConfirm(
-      "Are you sure you want to delete this plant?",
-      async () => {
-        try {
-          await plantsAPI.delete(id);
-          setPlants(plants.filter((p) => p.id !== id));
-        } catch (err) {
-          showAlert("Failed to delete plant", "Error");
-        }
-      },
-      "Delete Plant"
-    );
-  };
-
   const handleWaterPlant = async (e: React.MouseEvent, plantId: number) => {
     e.preventDefault();
     e.stopPropagation();
 
-    try {
-      const today = new Date().toISOString().split("T")[0];
+    const plant = plants.find((p) => p.id === plantId);
+    const plantName = plant?.name || "this plant";
 
-      // Check if already watered today
-      const existingEvents = await eventsAPI.getByPlantId(plantId, "Water");
-      const alreadyWateredToday = existingEvents.data.some(
-        (event) => event.event_date === today
-      );
+    showConfirm(
+      `Watered ${plantName} today?`,
+      async () => {
+        try {
+          const today = new Date().toISOString().split("T")[0];
 
-      if (alreadyWateredToday) {
-        showAlert(
-          "This plant has already been watered today!",
-          "Already Watered"
-        );
-        return;
-      }
+          // Check if already watered today
+          const existingEvents = await eventsAPI.getByPlantId(plantId, "Water");
+          const alreadyWateredToday = existingEvents.data.some(
+            (event) => event.event_date === today
+          );
 
-      await eventsAPI.create({
-        plant_id: plantId,
-        event_type: "Water",
-        event_date: today,
-      });
+          if (alreadyWateredToday) {
+            showAlert(
+              "This plant has already been watered today!",
+              "Already Watered"
+            );
+            return;
+          }
 
-      // Refresh plants to get updated last_watered from backend
-      await fetchPlants();
-    } catch (err) {
-      showAlert("Failed to add watering event", "Error");
-    }
+          await eventsAPI.create({
+            plant_id: plantId,
+            event_type: "Water",
+            event_date: today,
+          });
+
+          // Refresh plants to get updated last_watered from backend
+          await fetchPlants();
+        } catch (err) {
+          showAlert("Failed to add watering event", "Error");
+        }
+      },
+      "Add water event"
+    );
   };
 
   if (loading) return <div className="loading">Loading plants...</div>;
@@ -281,6 +284,7 @@ const PlantsListPage = () => {
               key={plant.id}
               plant={plant}
               onWater={handleWaterPlant}
+              isMobile={isMobile}
             />
           ))}
         </div>
@@ -291,7 +295,7 @@ const PlantsListPage = () => {
               <tr>
                 <th>Name</th>
                 <th>Status</th>
-                <th>Last Watered</th>
+                <th>Watered</th>
                 <th>Price</th>
                 <th>Actions</th>
               </tr>
@@ -301,8 +305,8 @@ const PlantsListPage = () => {
                 <PlantRow
                   key={plant.id}
                   plant={plant}
-                  onDelete={handleDeletePlant}
                   onWater={handleWaterPlant}
+                  isMobile={isMobile}
                 />
               ))}
             </tbody>
@@ -317,7 +321,7 @@ const PlantsListPage = () => {
         message={modalState.message}
         type={modalState.type}
         onConfirm={modalState.onConfirm}
-        confirmText={modalState.type === "confirm" ? "Delete" : "OK"}
+        confirmText={modalState.type === "confirm" ? "Yes" : "OK"}
       />
     </div>
   );
@@ -326,9 +330,11 @@ const PlantsListPage = () => {
 const PlantCard = ({
   plant,
   onWater,
+  isMobile,
 }: {
   plant: Plant;
   onWater: (e: React.MouseEvent, plantId: number) => void;
+  isMobile: boolean;
 }) => {
   const daysSinceWatered = getDaysSinceWatered(plant.last_watered);
   const profilePhotoUrl = getPlantPhotoUrl(plant.profile_photo);
@@ -349,7 +355,7 @@ const PlantCard = ({
         <h3>
           {plant.name}
           {plant.alias && (
-            <span className={styles.plantAlias}> ({plant.alias})</span>
+            <span className={styles.plantAlias}> {plant.alias}</span>
           )}
         </h3>
         <div className={styles.plantCardInfo}>
@@ -359,14 +365,14 @@ const PlantCard = ({
               {daysSinceWatered !== null && (
                 <span className={styles.daysAgo}>
                   {" "}
-                  {daysSinceWatered} days ago
+                  {isMobile
+                    ? `${daysSinceWatered}d ago`
+                    : `${daysSinceWatered} days ago`}
                 </span>
               )}
             </p>
           ) : (
-            <p className={`${styles.lastWatered} text-muted`}>
-              💧 Not watered yet
-            </p>
+            <p className={`${styles.lastWatered} text-muted`}>💧 N/A</p>
           )}
         </div>
       </div>
@@ -376,12 +382,12 @@ const PlantCard = ({
 
 const PlantRow = ({
   plant,
-  onDelete,
   onWater,
+  isMobile,
 }: {
   plant: Plant;
-  onDelete: (id: number) => void;
   onWater: (e: React.MouseEvent, plantId: number) => void;
+  isMobile: boolean;
 }) => {
   const daysSinceWatered = getDaysSinceWatered(plant.last_watered);
 
@@ -390,9 +396,6 @@ const PlantRow = ({
       <td>
         <Link to={`/plants/${plant.id}`} className={styles.plantNameLink}>
           {plant.name}
-          {plant.alias && (
-            <span className={styles.plantAlias}> ({plant.alias})</span>
-          )}
         </Link>
       </td>
       <td>
@@ -406,11 +409,15 @@ const PlantRow = ({
         {plant.last_watered ? (
           <>
             {daysSinceWatered !== null && (
-              <span className="text-muted"> {daysSinceWatered} days ago</span>
+              <span className="text-muted">
+                {isMobile
+                  ? `${daysSinceWatered}d ago`
+                  : `${daysSinceWatered} days ago`}
+              </span>
             )}
           </>
         ) : (
-          <span className="text-muted">Not watered yet</span>
+          <span className="text-muted">N/A</span>
         )}
       </td>
       <td>
@@ -425,13 +432,6 @@ const PlantRow = ({
           title="Water plant"
         >
           <WateringCanIcon />
-        </button>
-        <button
-          className={`btn-icon ${styles.deleteBtn}`}
-          onClick={() => plant.id && onDelete(plant.id)}
-          title="Delete plant"
-        >
-          <TrashIcon />
         </button>
       </td>
     </tr>

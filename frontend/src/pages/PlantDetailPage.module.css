@@ -412,6 +412,22 @@
   color: var(--text-secondary);
 }
 
+/* Delete Section */
+.deleteSection {
+  margin-top: var(--spacing-xl);
+  padding-top: var(--spacing-xl);
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: center;
+}
+
+.deleteSection button {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+}
+
 /* Modal */
 .modalOverlay {
   position: fixed;
@@ -477,6 +493,10 @@
 
   .plantDetailPage :global(.page-header) button {
     flex-shrink: 0;
+  }
+
+  .backText {
+    display: none;
   }
 
   .plantDetailLayout {
@@ -676,14 +696,6 @@
 
   .profilePhoto {
     height: 200px;
-  }
-
-  .eventTypeSelector {
-    justify-content: center;
-  }
-
-  .eventTypeBtn {
-    flex: 0 1 auto;
   }
 
   .photoGrid {

@@ -12,6 +12,7 @@ import { Plant, PlantEvent, PlantPhoto, EventType } from "../types";
 import { formatDate, toISODate } from "../utils/dateUtils";
 import { getPlantPhotoUrl } from "../utils/constants";
 import Modal from "../components/Modal";
+import TrashIcon from "../components/TrashIcon";
 import { useModal } from "../hooks/useModal";
 import "react-calendar/dist/Calendar.css";
 import styles from "./PlantDetailPage.module.css";
@@ -236,6 +237,23 @@ const PlantDetailPage = () => {
     setEditingPhotoDate("");
   };
 
+  const handleDeletePlant = async () => {
+    if (!id) return;
+
+    showConfirm(
+      "Are you sure you want to delete this plant? This action cannot be undone.",
+      async () => {
+        try {
+          await plantsAPI.delete(parseInt(id));
+          navigate("/");
+        } catch (err) {
+          showAlert("Failed to delete plant", "Error");
+        }
+      },
+      "Delete Plant"
+    );
+  };
+
   const getValidEvents = (eventsList: PlantEvent[]) => {
     return eventsList.filter((event) =>
       eventTypes.some((et) => et.name === event.event_type)
@@ -302,7 +320,7 @@ const PlantDetailPage = () => {
           )}
         </h2>
         <button onClick={() => navigate("/")} className="btn btn-secondary">
-          ← Back to List
+          ←<span className={styles.backText}> Back to List</span>
         </button>
       </div>
 
@@ -342,7 +360,7 @@ const PlantDetailPage = () => {
             </div>
           </div>
 
-          <details className={styles.plantInfoDetails}>
+          <details className={styles.plantInfoDetails} open>
             <summary>
               <h3>Plant Information</h3>
               <Link
@@ -502,11 +520,11 @@ const PlantDetailPage = () => {
           <div className={styles.eventTypeSelector}>
             {[...eventTypes]
               .sort((a, b) => {
-                // Water first, General Update last, others in between
+                // Water first, Other last, others in between
                 if (a.name === "Water") return -1;
                 if (b.name === "Water") return 1;
-                if (a.name === "General Update") return 1;
-                if (b.name === "General Update") return -1;
+                if (a.name === "Other") return 1;
+                if (b.name === "Other") return -1;
                 return 0;
               })
               .map((eventType) => (
@@ -837,6 +855,16 @@ const PlantDetailPage = () => {
           </div>
         </div>
       )}
+
+      <div className={styles.deleteSection}>
+        <button
+          onClick={handleDeletePlant}
+          className="btn btn-danger"
+          title="Delete plant"
+        >
+          <TrashIcon /> Delete Plant
+        </button>
+      </div>
 
       <Modal
         isOpen={modalState.isOpen}

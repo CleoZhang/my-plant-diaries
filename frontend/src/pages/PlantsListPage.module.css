@@ -359,12 +359,13 @@
   }
 
   .plantsGrid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: var(--spacing-sm);
   }
 
   .plantCard {
     font-size: 0.875rem;
+    padding: var(--spacing-xs);
   }
 
   .plantCardImage {

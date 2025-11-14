@@ -88,6 +88,7 @@ button {
   border-radius: var(--radius-md);
   font-weight: 500;
   transition: var(--transition);
+  text-decoration: none;
 }
 
 .btn-primary {
@@ -109,6 +110,17 @@ button {
 
 .btn-secondary:hover {
   background-color: var(--border-color);
+}
+
+.btn-danger {
+  background-color: var(--error-color);
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #c0392b;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-icon {

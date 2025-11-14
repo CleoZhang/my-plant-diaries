@@ -104,7 +104,8 @@ function initializeDatabase() {
       { name: 'Repot', emoji: '🪴' },
       { name: 'Propagate', emoji: '🌱' },
       { name: 'New Leaf', emoji: '🍃' },
-      { name: 'General Update', emoji: '📝' }
+      { name: 'Pest control', emoji: '🐛' },
+      { name: 'Other', emoji: '📝' }
     ];
 
     const stmt = db.prepare(`
@@ -117,6 +118,23 @@ function initializeDatabase() {
     });
 
     stmt.finalize();
+
+    // Migration: Remove "General Update" event type and all associated events
+    db.run(`DELETE FROM plant_events WHERE event_type = 'General Update'`, (err) => {
+      if (err) {
+        console.error('Error deleting General Update events:', err);
+      } else {
+        console.log('Removed General Update events');
+      }
+    });
+
+    db.run(`DELETE FROM event_types WHERE name = 'General Update'`, (err) => {
+      if (err) {
+        console.error('Error deleting General Update event type:', err);
+      } else {
+        console.log('Removed General Update event type');
+      }
+    });
 
     console.log('Database initialized successfully');
   });
