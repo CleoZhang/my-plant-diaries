@@ -5,6 +5,8 @@ import { plantsAPI, uploadAPI, tagsAPI } from "../services/api";
 import { Plant } from "../types";
 import { toISODate } from "../utils/dateUtils";
 import Dropdown from "../components/Dropdown";
+import Modal from "../components/Modal";
+import { useModal } from "../hooks/useModal";
 import "react-datepicker/dist/react-datepicker.css";
 import styles from "./AddPlantPage.module.css";
 
@@ -30,6 +32,7 @@ const AddPlantPage = () => {
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState("");
   const [loading, setLoading] = useState(isEdit);
+  const { modalState, showAlert, closeModal } = useModal();
 
   useEffect(() => {
     fetchTags();
@@ -51,7 +54,7 @@ const AddPlantPage = () => {
       }
       setLoading(false);
     } catch (err) {
-      alert("Failed to load plant");
+      showAlert("Failed to load plant", "Error");
       navigate("/");
     }
   };
@@ -95,7 +98,7 @@ const AddPlantPage = () => {
         profile_photo: response.data.path,
       }));
     } catch (err) {
-      alert("Failed to upload photo");
+      showAlert("Failed to upload photo", "Error");
     } finally {
       setUploading(false);
     }
@@ -113,7 +116,7 @@ const AddPlantPage = () => {
       setFormData((prev) => ({ ...prev, purchased_from: newTag.trim() }));
       setNewTag("");
     } catch (err) {
-      alert("Failed to add tag");
+      showAlert("Failed to add tag", "Error");
     }
   };
 
@@ -134,7 +137,7 @@ const AddPlantPage = () => {
       }
       navigate("/");
     } catch (err) {
-      alert(`Failed to ${isEdit ? "update" : "create"} plant`);
+      showAlert(`Failed to ${isEdit ? "update" : "create"} plant`, "Error");
     }
   };
 
@@ -300,6 +303,15 @@ const AddPlantPage = () => {
           </button>
         </div>
       </form>
+
+      <Modal
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        onConfirm={modalState.onConfirm}
+      />
     </div>
   );
 };

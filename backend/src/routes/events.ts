@@ -49,24 +49,43 @@ router.get('/:id', (req: Request, res: Response) => {
 router.post('/', (req: Request, res: Response) => {
   const event: PlantEvent = req.body;
   
-  const query = `
-    INSERT INTO plant_events (plant_id, event_type, event_date, notes)
-    VALUES (?, ?, ?, ?)
+  // Check for duplicate event on the same day
+  const checkQuery = `
+    SELECT id FROM plant_events 
+    WHERE plant_id = ? AND event_type = ? AND event_date = ?
+    LIMIT 1
   `;
-
-  const params = [
-    event.plant_id,
-    event.event_type,
-    event.event_date,
-    event.notes || null
-  ];
-
-  db.run(query, params, function(err) {
+  
+  db.get(checkQuery, [event.plant_id, event.event_type, event.event_date], (err, existingEvent) => {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
     }
-    res.status(201).json({ id: this.lastID, ...event });
+    
+    if (existingEvent) {
+      res.status(409).json({ error: 'An event of this type already exists for this plant on this date' });
+      return;
+    }
+    
+    const query = `
+      INSERT INTO plant_events (plant_id, event_type, event_date, notes)
+      VALUES (?, ?, ?, ?)
+    `;
+
+    const params = [
+      event.plant_id,
+      event.event_type,
+      event.event_date,
+      event.notes || null
+    ];
+
+    db.run(query, params, function(err) {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      res.status(201).json({ id: this.lastID, ...event });
+    });
   });
 });
 

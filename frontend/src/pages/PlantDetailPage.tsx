@@ -11,6 +11,8 @@ import {
 import { Plant, PlantEvent, PlantPhoto, EventType } from "../types";
 import { formatDate, toISODate } from "../utils/dateUtils";
 import { getPlantPhotoUrl } from "../utils/constants";
+import Modal from "../components/Modal";
+import { useModal } from "../hooks/useModal";
 import "react-calendar/dist/Calendar.css";
 import styles from "./PlantDetailPage.module.css";
 
@@ -32,6 +34,7 @@ const PlantDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [editingPhotoId, setEditingPhotoId] = useState<number | null>(null);
   const [editingPhotoDate, setEditingPhotoDate] = useState<string>("");
+  const { modalState, showAlert, showConfirm, closeModal } = useModal();
 
   useEffect(() => {
     if (id) {
@@ -62,7 +65,7 @@ const PlantDetailPage = () => {
       setEventTypes(eventTypesRes.data);
       setLoading(false);
     } catch (err) {
-      alert("Failed to load plant data");
+      showAlert("Failed to load plant data", "Error");
       navigate("/");
     }
   };
@@ -113,7 +116,10 @@ const PlantDetailPage = () => {
     );
 
     if (existingEvent) {
-      alert(`A ${selectedEventType} event already exists on this date.`);
+      showAlert(
+        `A ${selectedEventType} event already exists on this date.`,
+        "Event Exists"
+      );
       return;
     }
 
@@ -130,19 +136,23 @@ const PlantDetailPage = () => {
       setShowAddEventModal(false);
       setEventNotes("");
     } catch (err) {
-      alert("Failed to add event");
+      showAlert("Failed to add event", "Error");
     }
   };
 
   const handleDeleteEvent = async (eventId: number) => {
-    if (!confirm("Delete this event?")) return;
-
-    try {
-      await eventsAPI.delete(eventId);
-      if (id) fetchEvents(parseInt(id), selectedEventType);
-    } catch (err) {
-      alert("Failed to delete event");
-    }
+    showConfirm(
+      "Delete this event?",
+      async () => {
+        try {
+          await eventsAPI.delete(eventId);
+          if (id) fetchEvents(parseInt(id), selectedEventType);
+        } catch (err) {
+          showAlert("Failed to delete event", "Error");
+        }
+      },
+      "Delete Event"
+    );
   };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -166,7 +176,7 @@ const PlantDetailPage = () => {
       const photosRes = await photosAPI.getByPlantId(parseInt(id));
       setPhotos(photosRes.data);
     } catch (err) {
-      alert("Failed to upload photos");
+      showAlert("Failed to upload photos", "Error");
     } finally {
       setUploading(false);
     }
@@ -193,7 +203,7 @@ const PlantDetailPage = () => {
       setEditingPhotoId(null);
       setEditingPhotoDate("");
     } catch (err) {
-      alert("Failed to update photo date");
+      showAlert("Failed to update photo date", "Error");
     }
   };
 
@@ -581,6 +591,16 @@ const PlantDetailPage = () => {
           </div>
         </div>
       )}
+
+      <Modal
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        onConfirm={modalState.onConfirm}
+        confirmText={modalState.type === "confirm" ? "Delete" : "OK"}
+      />
     </div>
   );
 };

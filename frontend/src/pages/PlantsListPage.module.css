@@ -113,15 +113,20 @@
 }
 
 .statusBadge {
-  position: absolute;
-  top: var(--spacing-sm);
-  right: var(--spacing-sm);
+  display: inline-block;
   padding: var(--spacing-xs) var(--spacing-sm);
   border-radius: var(--radius-sm);
   font-size: 0.75rem;
   font-weight: 600;
   background-color: white;
   box-shadow: var(--shadow-sm);
+}
+
+/* For card view - position in top right corner of image */
+.plantCardImage .statusBadge {
+  position: absolute;
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
 }
 
 .statusBadge.statusAlive {

@@ -6,6 +6,9 @@ import { formatDate, getDaysSinceWatered } from "../utils/dateUtils";
 import { getPlantPhotoUrl } from "../utils/constants";
 import Dropdown from "../components/Dropdown";
 import WateringCanIcon from "../components/WateringCanIcon";
+import TrashIcon from "../components/TrashIcon";
+import Modal from "../components/Modal";
+import { useModal } from "../hooks/useModal";
 import styles from "./PlantsListPage.module.css";
 
 const PlantsListPage = () => {
@@ -19,6 +22,7 @@ const PlantsListPage = () => {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterPurchasedFrom, setFilterPurchasedFrom] = useState<string>("all");
   const [tags, setTags] = useState<string[]>([]);
+  const { modalState, showAlert, showConfirm, closeModal } = useModal();
 
   useEffect(() => {
     fetchPlants();
@@ -86,14 +90,18 @@ const PlantsListPage = () => {
   };
 
   const handleDeletePlant = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this plant?")) return;
-
-    try {
-      await plantsAPI.delete(id);
-      setPlants(plants.filter((p) => p.id !== id));
-    } catch (err) {
-      alert("Failed to delete plant");
-    }
+    showConfirm(
+      "Are you sure you want to delete this plant?",
+      async () => {
+        try {
+          await plantsAPI.delete(id);
+          setPlants(plants.filter((p) => p.id !== id));
+        } catch (err) {
+          showAlert("Failed to delete plant", "Error");
+        }
+      },
+      "Delete Plant"
+    );
   };
 
   const handleWaterPlant = async (e: React.MouseEvent, plantId: number) => {
@@ -102,20 +110,31 @@ const PlantsListPage = () => {
 
     try {
       const today = new Date().toISOString().split("T")[0];
+
+      // Check if already watered today
+      const existingEvents = await eventsAPI.getByPlantId(plantId, "Water");
+      const alreadyWateredToday = existingEvents.data.some(
+        (event) => event.event_date === today
+      );
+
+      if (alreadyWateredToday) {
+        showAlert(
+          "This plant has already been watered today!",
+          "Already Watered"
+        );
+        return;
+      }
+
       await eventsAPI.create({
         plant_id: plantId,
-        event_type: "Watered",
+        event_type: "Water",
         event_date: today,
       });
 
-      // Update the plant's last_watered field locally
-      setPlants(
-        plants.map((p) =>
-          p.id === plantId ? { ...p, last_watered: today } : p
-        )
-      );
+      // Refresh plants to get updated last_watered from backend
+      await fetchPlants();
     } catch (err) {
-      alert("Failed to add watering event");
+      showAlert("Failed to add watering event", "Error");
     }
   };
 
@@ -243,6 +262,16 @@ const PlantsListPage = () => {
           </table>
         </div>
       )}
+
+      <Modal
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        onConfirm={modalState.onConfirm}
+        confirmText={modalState.type === "confirm" ? "Delete" : "OK"}
+      />
     </div>
   );
 };
@@ -360,7 +389,7 @@ const PlantRow = ({
           onClick={() => plant.id && onDelete(plant.id)}
           title="Delete plant"
         >
-          🗑️
+          <TrashIcon />
         </button>
       </td>
     </tr>
