@@ -4,7 +4,7 @@ import fs from 'fs';
 import { parse } from 'csv-parse/sync';
 
 const dbPath = process.env.DB_PATH || './database.sqlite';
-const csvBasePath = path.join(__dirname, '../../csv/My store-bought plants');
+const csvBasePath = path.join(__dirname, '../../notion-csv/My store-bought plants');
 
 interface UpdateRecord {
   Name: string;
@@ -104,7 +104,7 @@ function findPlantFolders(): PlantFolder[] {
   const folders: PlantFolder[] = [];
   
   if (!fs.existsSync(csvBasePath)) {
-    console.error(`CSV base path does not exist: ${csvBasePath}`);
+    console.error(`Notion CSV base path does not exist: ${csvBasePath}`);
     return folders;
   }
   
@@ -328,8 +328,8 @@ async function processPlantFolder(db: sqlite3.Database, folder: PlantFolder): Pr
 }
 
 async function main() {
-  console.log('Starting plant updates import...');
-  console.log(`CSV base path: ${csvBasePath}`);
+  console.log('Starting plant updates import from Notion CSV...');
+  console.log(`Notion CSV base path: ${csvBasePath}`);
   
   const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {

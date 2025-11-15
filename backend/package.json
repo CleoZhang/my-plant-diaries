@@ -9,8 +9,8 @@
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
     "migrate-photos": "ts-node src/utils/migratePhotos.ts",
-    "import-updates": "ts-node src/scripts/importPlantUpdates.ts",
-    "restore-db": "ts-node src/scripts/restoreDatabase.ts && npm run import-updates"
+    "import-updates-notion": "ts-node src/scripts/importPlantUpdates.ts",
+    "restore-db-notion": "ts-node src/scripts/restoreDatabase.ts && npm run import-updates-notion"
   },
   "keywords": [
     "plants",

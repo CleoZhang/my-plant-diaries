@@ -5,8 +5,8 @@ import { parse } from 'csv-parse/sync';
 import { getPlantUploadFolder, deletePlantUploadFolder } from '../utils/uploadUtils';
 
 const dbPath = process.env.DB_PATH || './database.sqlite';
-const csvPath = path.join(__dirname, '../../csv/My store-bought plants 26f6def8e669809c9e6fe385db01acc7_all.csv');
-const csvBasePath = path.join(__dirname, '../../csv/My store-bought plants');
+const csvPath = path.join(__dirname, '../../notion-csv/My store-bought plants 26f6def8e669809c9e6fe385db01acc7_all.csv');
+const csvBasePath = path.join(__dirname, '../../notion-csv/My store-bought plants');
 
 interface PlantCSVRow {
   Plant?: string;
@@ -108,11 +108,11 @@ function extractFirstImage(filesMediaStr: string | undefined): string | null {
   return null;
 }
 
-// Helper function to copy image from CSV folder to uploads folder
-function copyImageFromCsvFolder(imageName: string, plantName: string): string | null {
+// Helper function to copy image from Notion CSV folder to uploads folder
+function copyImageFromNotionCsvFolder(imageName: string, plantName: string): string | null {
   if (!imageName) return null;
   
-  const sourcePath = path.join(__dirname, '../../csv/My store-bought plants', imageName);
+  const sourcePath = path.join(__dirname, '../../notion-csv/My store-bought plants', imageName);
   
   if (!fs.existsSync(sourcePath)) {
     console.warn(`  ⚠ Image not found: ${sourcePath}`);
@@ -245,7 +245,7 @@ function importMainCSV(db: sqlite3.Database): Promise<{ success: number; errors:
       let profilePhoto: string | null = null;
       
       if (firstImage) {
-        profilePhoto = copyImageFromCsvFolder(firstImage, plantName);
+        profilePhoto = copyImageFromNotionCsvFolder(firstImage, plantName);
       }
       
       const plant = {

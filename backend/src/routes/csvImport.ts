@@ -76,11 +76,11 @@ function extractFirstImage(filesMediaStr: string | undefined): string | null {
   return filename || null;
 }
 
-// Helper function to copy image from CSV folder to uploads folder
-function copyImageFromCsvFolder(imageName: string, plantName: string): string | null {
+// Helper function to copy image from Notion CSV folder to uploads folder
+function copyImageFromNotionCsvFolder(imageName: string, plantName: string): string | null {
   if (!imageName) return null;
   
-  const sourcePath = path.join(__dirname, '../../csv/My store-bought plants', imageName);
+  const sourcePath = path.join(__dirname, '../../notion-csv/My store-bought plants', imageName);
   
   // Check if source file exists
   if (!fs.existsSync(sourcePath)) {
@@ -192,7 +192,7 @@ router.post('/import', upload.single('csv'), async (req: Request, res: Response)
         let profilePhoto: string | null = null;
         
         if (firstImage) {
-          profilePhoto = copyImageFromCsvFolder(firstImage, plantName);
+          profilePhoto = copyImageFromNotionCsvFolder(firstImage, plantName);
         }
         
         const plant: Plant = {

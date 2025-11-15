@@ -8,3 +8,4 @@ dist
 database.sqlite
 uploads/*
 !uploads/.gitkeep
+backend/notion-csv/
