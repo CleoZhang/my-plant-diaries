@@ -39,7 +39,37 @@ function parseDate(dateStr: string | undefined): string | null {
     return null;
   }
 
-  const date = new Date(dateStr);
+  let date: Date;
+  
+  // Check if it's in DD-MMM-YY format (e.g., "27-Oct-25")
+  const shortDateMatch = dateStr.match(/^(\d{1,2})-([A-Za-z]{3})-(\d{2})$/);
+  if (shortDateMatch) {
+    const [, day, monthStr, year] = shortDateMatch;
+    const monthMap: { [key: string]: number } = {
+      'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'may': 4, 'jun': 5,
+      'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11
+    };
+    const month = monthMap[monthStr.toLowerCase()];
+    // Assume 20XX for years 00-99
+    const fullYear = 2000 + parseInt(year);
+    date = new Date(fullYear, month, parseInt(day));
+  } else if (dateStr.match(/^[A-Za-z]{3}-\d{1,2}$/)) {
+    // Check if it's in MMM-DD format (e.g., "Oct-27") without year
+    // This is ambiguous but appears in the "Last water date" column
+    // Assume current year (2025)
+    const [monthStr, day] = dateStr.split('-');
+    const monthMap: { [key: string]: number } = {
+      'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'may': 4, 'jun': 5,
+      'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11
+    };
+    const month = monthMap[monthStr.toLowerCase()];
+    const fullYear = 2025; // Current year
+    date = new Date(fullYear, month, parseInt(day));
+  } else {
+    // Try parsing as regular date format
+    date = new Date(dateStr);
+  }
+
   if (isNaN(date.getTime())) {
     return null;
   }

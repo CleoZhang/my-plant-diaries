@@ -40,8 +40,30 @@ const eventTypeMapping: { [key: string]: string } = {
 };
 
 function parseDate(dateStr: string): string {
-  // Parse dates like "September 20, 2025" to "2025-09-20"
-  const date = new Date(dateStr);
+  // Handle multiple date formats:
+  // - "September 20, 2025" (full format)
+  // - "20-Aug-25" (DD-MMM-YY format)
+  // - "27-Oct-25" (DD-MMM-YY format)
+  
+  let date: Date;
+  
+  // Check if it's in DD-MMM-YY format (e.g., "27-Oct-25")
+  const shortDateMatch = dateStr.match(/^(\d{1,2})-([A-Za-z]{3})-(\d{2})$/);
+  if (shortDateMatch) {
+    const [, day, monthStr, year] = shortDateMatch;
+    const monthMap: { [key: string]: number } = {
+      'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'may': 4, 'jun': 5,
+      'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11
+    };
+    const month = monthMap[monthStr.toLowerCase()];
+    // Assume 20XX for years 00-99
+    const fullYear = 2000 + parseInt(year);
+    date = new Date(fullYear, month, parseInt(day));
+  } else {
+    // Try parsing as regular date format
+    date = new Date(dateStr);
+  }
+  
   if (isNaN(date.getTime())) {
     console.warn(`Invalid date: ${dateStr}`);
     const now = new Date();
@@ -50,6 +72,7 @@ function parseDate(dateStr: string): string {
     const day = String(now.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   }
+  
   // Use local date components to avoid timezone conversion issues
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
