@@ -1,4 +1,41 @@
-# Plant Updates Import Script
+# Database Scripts
+
+## Database Restore Script
+
+### Overview
+The `restoreDatabase.ts` script performs a complete database restore by:
+1. Deleting all existing data (plants, events, photos, tags)
+2. Deleting all plant photo folders
+3. Resetting all ID counters to start from 1
+4. Importing plants from the main CSV file
+5. Automatically running the import-updates script to add events and photos
+
+### Usage
+
+From the `backend` directory, run:
+```bash
+npm run restore-db
+```
+
+This will:
+- Clear all database tables
+- Import `csv/My store-bought plants 26f6def8e669809c9e6fe385db01acc7_all.csv`
+- Automatically run `npm run import-updates` to import events and photos
+
+### What it does
+1. **Clears all data**: Deletes all plants, events, photos, and tags
+2. **Deletes photo folders**: Removes all uploaded photos from the uploads directory
+3. **Resets IDs**: Resets autoincrement counters so IDs start from 1
+4. **Imports plants**: Reads the main CSV and creates plant records
+5. **Imports updates**: Automatically runs the import-updates script
+
+### Requirements
+- Main CSV file must exist at: `backend/csv/My store-bought plants 26f6def8e669809c9e6fe385db01acc7_all.csv`
+- Update CSV files must be in: `backend/csv/My store-bought plants/[plant folders]`
+
+---
+
+## Plant Updates Import Script
 
 This script imports plant updates (events and photos) from the CSV files in the `backend/csv/My store-bought plants` directory.
 
