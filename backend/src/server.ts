@@ -1,9 +1,12 @@
+/// <reference path="./types/express.d.ts" />
+
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import dotenv from 'dotenv';
 
 // Import routes
+import authRouter from './routes/auth';
 import plantsRouter from './routes/plants';
 import eventsRouter from './routes/events';
 import photosRouter from './routes/photos';
@@ -30,6 +33,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // API Routes
+app.use('/api/auth', authRouter);
 app.use('/api/plants', plantsRouter);
 app.use('/api/events', eventsRouter);
 app.use('/api/photos', photosRouter);

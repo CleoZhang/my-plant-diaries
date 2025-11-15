@@ -5,6 +5,7 @@ import fs from 'fs';
 import convert from 'heic-convert';
 import exifParser from 'exif-parser';
 import { moveToPlantFolder } from '../utils/uploadUtils';
+import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
 
@@ -74,13 +75,14 @@ const upload = multer({
   }
 });
 
-// Upload single photo
-router.post('/single', upload.single('photo'), async (req: Request, res: Response) => {
+// Upload single photo (requires authentication)
+router.post('/single', authenticateToken, upload.single('photo'), async (req: Request, res: Response) => {
   if (!req.file) {
     res.status(400).json({ error: 'No file uploaded' });
     return;
   }
 
+  const userId = req.user!.userId;
   const plantName = req.body.plantName;
   if (!plantName) {
     // Clean up uploaded file
@@ -119,7 +121,7 @@ router.post('/single', upload.single('photo'), async (req: Request, res: Respons
     }
 
     // Move file to plant-specific subfolder
-    const relativePath = moveToPlantFolder(finalPath, plantName, finalFilename);
+    const relativePath = moveToPlantFolder(userId, finalPath, plantName, finalFilename);
 
     res.json({
       filename: finalFilename,
@@ -137,13 +139,14 @@ router.post('/single', upload.single('photo'), async (req: Request, res: Respons
   }
 });
 
-// Upload multiple photos
-router.post('/multiple', upload.array('photos', 10), async (req: Request, res: Response) => {
+// Upload multiple photos (requires authentication)
+router.post('/multiple', authenticateToken, upload.array('photos', 10), async (req: Request, res: Response) => {
   if (!req.files || (req.files as Express.Multer.File[]).length === 0) {
     res.status(400).json({ error: 'No files uploaded' });
     return;
   }
 
+  const userId = req.user!.userId;
   const plantName = req.body.plantName;
   if (!plantName) {
     // Clean up uploaded files
@@ -186,7 +189,7 @@ router.post('/multiple', upload.array('photos', 10), async (req: Request, res: R
         }
 
         // Move file to plant-specific subfolder
-        const relativePath = moveToPlantFolder(finalPath, plantName, finalFilename);
+        const relativePath = moveToPlantFolder(userId, finalPath, plantName, finalFilename);
 
         return {
           filename: finalFilename,

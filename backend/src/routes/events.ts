@@ -1,11 +1,12 @@
 import { Router, Request, Response } from 'express';
 import db from '../database';
 import { PlantEvent } from '../types';
+import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
 
 // Get all events for a plant
-router.get('/plant/:plantId', (req: Request, res: Response) => {
+router.get('/plant/:plantId', authenticateToken, (req: Request, res: Response) => {
   const { plantId } = req.params;
   const { eventType } = req.query;
 
@@ -29,7 +30,7 @@ router.get('/plant/:plantId', (req: Request, res: Response) => {
 });
 
 // Get single event
-router.get('/:id', (req: Request, res: Response) => {
+router.get('/:id', authenticateToken, (req: Request, res: Response) => {
   const { id } = req.params;
   
   db.get('SELECT * FROM plant_events WHERE id = ?', [id], (err, row: PlantEvent) => {
@@ -46,7 +47,7 @@ router.get('/:id', (req: Request, res: Response) => {
 });
 
 // Create new event
-router.post('/', (req: Request, res: Response) => {
+router.post('/', authenticateToken, (req: Request, res: Response) => {
   const event: PlantEvent = req.body;
   
   // Check for duplicate event on the same day
@@ -95,7 +96,7 @@ router.post('/', (req: Request, res: Response) => {
 });
 
 // Update event
-router.put('/:id', (req: Request, res: Response) => {
+router.put('/:id', authenticateToken, (req: Request, res: Response) => {
   const { id } = req.params;
   const event: PlantEvent = req.body;
   
@@ -131,7 +132,7 @@ router.put('/:id', (req: Request, res: Response) => {
 });
 
 // Delete event
-router.delete('/:id', (req: Request, res: Response) => {
+router.delete('/:id', authenticateToken, (req: Request, res: Response) => {
   const { id } = req.params;
   
   db.run('DELETE FROM plant_events WHERE id = ?', [id], function(err) {

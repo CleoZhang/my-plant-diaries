@@ -14,6 +14,20 @@ export const db = new sqlite3.Database(dbPath, (err) => {
 
 function initializeDatabase() {
   db.serialize(() => {
+    // Users table
+    db.run(`
+      CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT UNIQUE NOT NULL,
+        password_hash TEXT NOT NULL,
+        display_name TEXT,
+        is_admin BOOLEAN DEFAULT 0,
+        refresh_token TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
     // Plants table
     db.run(`
       CREATE TABLE IF NOT EXISTS plants (
@@ -27,10 +41,21 @@ function initializeDatabase() {
         received_when TEXT,
         status TEXT DEFAULT 'Alive',
         profile_photo TEXT,
+        user_id INTEGER,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       )
     `);
+
+    // Add user_id column if it doesn't exist (for existing databases)
+    db.run(`
+      ALTER TABLE plants ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE CASCADE
+    `, (err) => {
+      if (err && !err.message.includes('duplicate column')) {
+        console.error('Error adding user_id column:', err);
+      }
+    });
 
     // Add alias column if it doesn't exist (for existing databases)
     db.run(`
@@ -125,6 +150,15 @@ function initializeDatabase() {
     });
 
     stmt.finalize();
+
+    // Add is_admin column if it doesn't exist (for existing databases)
+    db.run(`
+      ALTER TABLE users ADD COLUMN is_admin BOOLEAN DEFAULT 0
+    `, (err) => {
+      if (err && !err.message.includes('duplicate column')) {
+        console.error('Error adding is_admin column:', err);
+      }
+    });
 
     // // Migration: Remove "General Update" event type and all associated events
     // db.run(`DELETE FROM plant_events WHERE event_type = 'General Update'`, (err) => {

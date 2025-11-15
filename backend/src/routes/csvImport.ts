@@ -6,6 +6,7 @@ import path from 'path';
 import db from '../database';
 import { Plant } from '../types';
 import { getPlantUploadFolder, sanitizePlantName, deletePlantUploadFolder } from '../utils/uploadUtils';
+import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
 
@@ -94,8 +95,9 @@ function copyImageFromNotionCsvFolder(imageName: string, plantName: string): str
   const baseName = path.basename(imageName, ext);
   const newFilename = `csv_import_${timestamp}_${baseName}${ext}`;
   
-  // Get or create plant-specific upload folder
-  const plantFolder = getPlantUploadFolder(plantName);
+  // Get or create plant-specific upload folder (for admin user_id = 1)
+  const userId = 1;
+  const plantFolder = getPlantUploadFolder(userId, plantName);
   const destPath = path.join(plantFolder, newFilename);
   
   try {
@@ -105,17 +107,18 @@ function copyImageFromNotionCsvFolder(imageName: string, plantName: string): str
     
     // Return the relative path for database storage
     const sanitized = sanitizePlantName(plantName);
-    return `/uploads/${sanitized}/${newFilename}`;
+    return `/uploads/${userId}/${sanitized}/${newFilename}`;
   } catch (error) {
     console.error(`Failed to copy image ${imageName}:`, error);
     return null;
   }
 }
 
-// Import CSV endpoint
-router.post('/import', upload.single('csv'), async (req: Request, res: Response) => {
+// Import CSV endpoint (requires authentication)
+router.post('/import', authenticateToken, upload.single('csv'), async (req: Request, res: Response) => {
   const file = req.file;
   const clearExisting = req.body.clearExisting === 'true';
+  const userId = req.user!.userId;
   
   if (!file) {
     res.status(400).json({ error: 'No CSV file uploaded' });
@@ -132,7 +135,7 @@ router.post('/import', upload.single('csv'), async (req: Request, res: Response)
     if (clearExisting) {
       await new Promise<void>((resolve, reject) => {
         // First, get all plants to delete their folders
-        db.all('SELECT id, name FROM plants', [], (err, plants: any[]) => {
+        db.all('SELECT id, name, user_id FROM plants WHERE user_id = ?', [userId], (err, plants: any[]) => {
           if (err) {
             reject(err);
             return;
@@ -140,8 +143,8 @@ router.post('/import', upload.single('csv'), async (req: Request, res: Response)
           
           // Delete all plant folders with their photos
           plants.forEach((plant) => {
-            if (plant.name) {
-              deletePlantUploadFolder(plant.name);
+            if (plant.name && plant.user_id) {
+              deletePlantUploadFolder(plant.user_id, plant.name);
             }
           });
           

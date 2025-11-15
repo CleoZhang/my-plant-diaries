@@ -109,7 +109,8 @@ function extractFirstImage(filesMediaStr: string | undefined): string | null {
 }
 
 // Helper function to copy image from Notion CSV folder to uploads folder
-function copyImageFromNotionCsvFolder(imageName: string, plantName: string): string | null {
+// All plants are imported for admin user (user_id = 1)
+function copyImageFromNotionCsvFolder(imageName: string, plantName: string, userId: number = 1): string | null {
   if (!imageName) return null;
   
   const sourcePath = path.join(__dirname, '../../notion-csv/My store-bought plants', imageName);
@@ -124,13 +125,13 @@ function copyImageFromNotionCsvFolder(imageName: string, plantName: string): str
   const baseName = path.basename(imageName, ext);
   const newFilename = `csv_import_${timestamp}_${baseName}${ext}`;
   
-  const plantFolder = getPlantUploadFolder(plantName);
+  const plantFolder = getPlantUploadFolder(userId, plantName);
   const destPath = path.join(plantFolder, newFilename);
   
   try {
     fs.copyFileSync(sourcePath, destPath);
     const plantNameForPath = plantName.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_-]/g, '');
-    return `/uploads/${plantNameForPath}/${newFilename}`;
+    return `/uploads/${userId}/${plantNameForPath}/${newFilename}`;
   } catch (error) {
     console.warn(`  ⚠ Failed to copy image: ${error}`);
     return null;
@@ -143,7 +144,7 @@ function clearAllData(db: sqlite3.Database): Promise<void> {
     
     db.serialize(() => {
       // Get all plants to delete their folders
-      db.all('SELECT id, name FROM plants', [], (err, plants: any[]) => {
+      db.all('SELECT id, name, user_id FROM plants', [], (err, plants: any[]) => {
         if (err) {
           reject(err);
           return;
@@ -151,8 +152,8 @@ function clearAllData(db: sqlite3.Database): Promise<void> {
         
         // Delete all plant folders with their photos
         plants.forEach((plant) => {
-          if (plant.name) {
-            deletePlantUploadFolder(plant.name);
+          if (plant.name && plant.user_id) {
+            deletePlantUploadFolder(plant.user_id, plant.name);
           }
         });
         
@@ -277,13 +278,13 @@ function importMainCSV(db: sqlite3.Database): Promise<{ success: number; errors:
         });
       }
       
-      // Insert plant
+      // Insert plant for admin user (user_id = 1)
       const query = `
         INSERT INTO plants (
           name, alias, price, delivery_fee, purchased_from, 
-          purchased_when, received_when, purchase_notes, status, profile_photo
+          purchased_when, received_when, purchase_notes, status, profile_photo, user_id
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
       `;
       
       const params = [

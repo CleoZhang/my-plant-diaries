@@ -1,3 +1,14 @@
+export interface User {
+  id?: number;
+  email: string;
+  password_hash?: string;
+  display_name?: string;
+  is_admin?: boolean;
+  refresh_token?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface Plant {
   id?: number;
   name: string;
@@ -10,6 +21,7 @@ export interface Plant {
   purchase_notes?: string;
   status?: 'Alive' | 'Dead' | 'Binned' | 'GaveAway';
   profile_photo?: string;
+  user_id?: number;
   created_at?: string;
   updated_at?: string;
 }

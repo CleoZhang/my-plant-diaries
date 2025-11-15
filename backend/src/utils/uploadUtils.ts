@@ -17,11 +17,12 @@ export function sanitizePlantName(plantName: string): string {
 /**
  * Creates and returns the path for a plant's photo subfolder
  * Creates the folder if it doesn't exist
+ * Structure: uploads/{userId}/{plantName}/
  */
-export function getPlantUploadFolder(plantName: string): string {
+export function getPlantUploadFolder(userId: number, plantName: string): string {
   const uploadDir = process.env.UPLOAD_DIR || './uploads';
   const sanitized = sanitizePlantName(plantName);
-  const plantFolder = path.join(uploadDir, sanitized);
+  const plantFolder = path.join(uploadDir, userId.toString(), sanitized);
   
   // Create the folder if it doesn't exist
   if (!fs.existsSync(plantFolder)) {
@@ -34,10 +35,10 @@ export function getPlantUploadFolder(plantName: string): string {
 /**
  * Deletes a plant's photo subfolder and all its contents
  */
-export function deletePlantUploadFolder(plantName: string): void {
+export function deletePlantUploadFolder(userId: number, plantName: string): void {
   const uploadDir = process.env.UPLOAD_DIR || './uploads';
   const sanitized = sanitizePlantName(plantName);
-  const plantFolder = path.join(uploadDir, sanitized);
+  const plantFolder = path.join(uploadDir, userId.toString(), sanitized);
   
   if (fs.existsSync(plantFolder)) {
     try {
@@ -60,8 +61,8 @@ export function deletePlantUploadFolder(plantName: string): void {
 /**
  * Moves files from temp/root uploads folder to plant-specific subfolder
  */
-export function moveToPlantFolder(currentPath: string, plantName: string, filename: string): string {
-  const plantFolder = getPlantUploadFolder(plantName);
+export function moveToPlantFolder(userId: number, currentPath: string, plantName: string, filename: string): string {
+  const plantFolder = getPlantUploadFolder(userId, plantName);
   const newPath = path.join(plantFolder, filename);
   
   // Move the file
@@ -69,5 +70,5 @@ export function moveToPlantFolder(currentPath: string, plantName: string, filena
   
   // Return the relative path for database storage
   const sanitized = sanitizePlantName(plantName);
-  return `/uploads/${sanitized}/${filename}`;
+  return `/uploads/${userId}/${sanitized}/${filename}`;
 }

@@ -2,6 +2,7 @@ import sqlite3 from 'sqlite3';
 import path from 'path';
 import fs from 'fs';
 import { parse } from 'csv-parse/sync';
+import { getPlantUploadFolder, sanitizePlantName } from '../utils/uploadUtils';
 
 const dbPath = process.env.DB_PATH || './database.sqlite';
 const csvBasePath = path.join(__dirname, '../../notion-csv/My store-bought plants');
@@ -289,36 +290,48 @@ async function processPlantFolder(db: sqlite3.Database, folder: PlantFolder): Pr
     
     // Process photo if exists
     if (record.Photo && record.Photo.trim()) {
-      // Decode URL-encoded path
-      const decodedPhotoPath = decodeURIComponent(record.Photo);
-      const photoFileName = path.basename(decodedPhotoPath);
-      const photoPath = path.join(csvBasePath, folder.folderName, photoFileName);
+      // Handle multiple photos (comma-separated)
+      const photoList = record.Photo.split(',').map(p => p.trim()).filter(p => p);
       
-      if (fs.existsSync(photoPath)) {
-        // Check if photo already exists
-        const photoExists = await checkPhotoExists(db, plantId, photoPath);
-        
-        if (!photoExists) {
-          // Copy photo to uploads folder
-          const plantNameForPath = folder.plantName.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_-]/g, '');
-          const uploadsDir = path.join(__dirname, '../../uploads', plantNameForPath);
+      for (const photoEntry of photoList) {
+        // Decode URL-encoded path
+        const decodedPhotoPath = decodeURIComponent(photoEntry);
+        const photoFileName = path.basename(decodedPhotoPath);
+        // Photo path is relative to csvBasePath (My store-bought plants)
+        const photoPath = path.join(csvBasePath, decodedPhotoPath);
+      
+        if (fs.existsSync(photoPath)) {
+          // Check if photo already exists
+          const photoExists = await checkPhotoExists(db, plantId, photoPath);
           
-          if (!fs.existsSync(uploadsDir)) {
-            fs.mkdirSync(uploadsDir, { recursive: true });
+          if (!photoExists) {
+            // Copy photo to uploads folder with user_id structure
+            // All CSV imports are for admin user (user_id = 1)
+            const userId = 1;
+            const timestamp = Date.now();
+            const ext = path.extname(photoFileName);
+            const baseName = path.basename(photoFileName, ext);
+            const newFilename = `csv_import_${timestamp}_${baseName}${ext}`;
+            
+            const uploadsDir = getPlantUploadFolder(userId, folder.plantName);
+            const targetPhotoPath = path.join(uploadsDir, newFilename);
+            
+            fs.copyFileSync(photoPath, targetPhotoPath);
+            
+            // Insert photo record with correct user_id path
+            const plantNameForPath = sanitizePlantName(folder.plantName);
+            const relativePath = `/uploads/${userId}/${plantNameForPath}/${newFilename}`;
+            await insertPhoto(db, plantId, relativePath, new Date(eventDate).toISOString());
+            photosAdded++;
+            
+            // Add small delay to ensure unique timestamps
+            await new Promise(resolve => setTimeout(resolve, 2));
+          } else {
+            photosSkipped++;
           }
-          
-          const targetPhotoPath = path.join(uploadsDir, photoFileName);
-          fs.copyFileSync(photoPath, targetPhotoPath);
-          
-          // Insert photo record
-          const relativePath = `/uploads/${plantNameForPath}/${photoFileName}`;
-          await insertPhoto(db, plantId, relativePath, new Date(eventDate).toISOString());
-          photosAdded++;
         } else {
-          photosSkipped++;
+          console.log(`    ⚠ Photo not found: ${photoPath}`);
         }
-      } else {
-        console.log(`    ⚠ Photo not found: ${photoPath}`);
       }
     }
   }

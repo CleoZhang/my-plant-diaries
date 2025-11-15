@@ -1,11 +1,12 @@
 import { Router, Request, Response } from 'express';
 import db from '../database';
 import { PlantPhoto } from '../types';
+import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
 
 // Get all photos for a plant
-router.get('/plant/:plantId', (req: Request, res: Response) => {
+router.get('/plant/:plantId', authenticateToken, (req: Request, res: Response) => {
   const { plantId } = req.params;
 
   db.all(
@@ -22,7 +23,7 @@ router.get('/plant/:plantId', (req: Request, res: Response) => {
 });
 
 // Create new photo entry
-router.post('/', (req: Request, res: Response) => {
+router.post('/', authenticateToken, (req: Request, res: Response) => {
   const photo: PlantPhoto = req.body;
   
   const query = `
@@ -47,7 +48,7 @@ router.post('/', (req: Request, res: Response) => {
 });
 
 // Update photo
-router.put('/:id', (req: Request, res: Response) => {
+router.put('/:id', authenticateToken, (req: Request, res: Response) => {
   const { id } = req.params;
   const { caption, taken_at } = req.body;
   
@@ -71,7 +72,7 @@ router.put('/:id', (req: Request, res: Response) => {
 });
 
 // Delete photo
-router.delete('/:id', (req: Request, res: Response) => {
+router.delete('/:id', authenticateToken, (req: Request, res: Response) => {
   const { id } = req.params;
   
   db.run('DELETE FROM plant_photos WHERE id = ?', [id], function(err) {

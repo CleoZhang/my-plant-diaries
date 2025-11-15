@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { Plant, PlantEvent, PlantPhoto, Tag, EventType } from '../types';
+import { getAccessToken, refreshAccessToken } from './authService';
 
 const API_BASE_URL = '/api';
 
@@ -9,6 +10,53 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// Request interceptor to add auth token
+api.interceptors.request.use(
+  (config) => {
+    const token = getAccessToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor to handle token refresh
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    // If error is 403 (forbidden) and we haven't tried to refresh yet
+    if (error.response?.status === 403 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        const newAccessToken = await refreshAccessToken();
+        
+        if (newAccessToken) {
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          return api(originalRequest);
+        }
+      } catch (refreshError) {
+        // Refresh failed, redirect to login
+        window.location.href = '/login';
+        return Promise.reject(refreshError);
+      }
+    }
+
+    // If error is 401 (unauthorized), redirect to login
+    if (error.response?.status === 401) {
+      window.location.href = '/login';
+    }
+
+    return Promise.reject(error);
+  }
+);
 
 // Plants API
 export const plantsAPI = {
