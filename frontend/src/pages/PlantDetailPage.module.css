@@ -381,8 +381,51 @@
   border-top: 1px solid var(--border-color);
 }
 
+.eventsListHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.eventsListHeader h4 {
+  margin: 0;
+  flex: 1;
+  min-width: 150px;
+}
+
+.dateRangeFilter {
+  min-width: 140px;
+}
+
 .eventsList h4 {
   margin-bottom: var(--spacing-md);
+}
+
+.eventsListScroll {
+  max-height: 320px; /* Approximately 5 items at ~64px each */
+  overflow-y: auto;
+  padding-right: var(--spacing-xs);
+}
+
+.eventsListScroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.eventsListScroll::-webkit-scrollbar-track {
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+}
+
+.eventsListScroll::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: var(--radius-sm);
+}
+
+.eventsListScroll::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
 }
 
 .eventsList ul {
@@ -624,6 +667,20 @@
   .eventsList {
     margin-top: var(--spacing-md);
     padding-top: var(--spacing-md);
+  }
+
+  .eventsListHeader {
+    padding: 0 var(--spacing-sm);
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .eventsListHeader h4 {
+    min-width: unset;
+  }
+
+  .dateRangeFilter {
+    width: 100%;
   }
 
   .eventsList h4 {

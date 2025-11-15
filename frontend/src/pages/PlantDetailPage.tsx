@@ -15,6 +15,7 @@ import Modal from "../components/Modal";
 import TrashIcon from "../components/TrashIcon";
 import EditIcon from "../components/EditIcon";
 import LoadingSpinner from "../components/LoadingSpinner";
+import Dropdown from "../components/Dropdown";
 import { useModal } from "../hooks/useModal";
 import { useLoading } from "../contexts/LoadingContext";
 import "react-calendar/dist/Calendar.css";
@@ -42,6 +43,7 @@ const PlantDetailPage = () => {
     useState(false);
   const [showMobilePhotoGalleryModal, setShowMobilePhotoGalleryModal] =
     useState(false);
+  const [dateRangeFilter, setDateRangeFilter] = useState<string>("past3months");
   const { modalState, showAlert, showConfirm, closeModal } = useModal();
   const { isLoading, startLoading, stopLoading } = useLoading();
 
@@ -325,6 +327,33 @@ const PlantDetailPage = () => {
 
   const getSelectedEventType = () => {
     return eventTypes.find((et) => et.name === selectedEventType);
+  };
+
+  const getFilteredEventsByDateRange = (eventsList: PlantEvent[]) => {
+    const today = new Date();
+    const cutoffDate = new Date();
+
+    switch (dateRangeFilter) {
+      case "past1month":
+        cutoffDate.setMonth(today.getMonth() - 1);
+        break;
+      case "past3months":
+        cutoffDate.setMonth(today.getMonth() - 3);
+        break;
+      case "past6months":
+        cutoffDate.setMonth(today.getMonth() - 6);
+        break;
+      case "past1year":
+        cutoffDate.setFullYear(today.getFullYear() - 1);
+        break;
+      default:
+        cutoffDate.setMonth(today.getMonth() - 3);
+    }
+
+    return eventsList.filter((event) => {
+      const eventDate = new Date(event.event_date);
+      return eventDate >= cutoffDate;
+    });
   };
 
   if (loading || !plant) {
@@ -615,58 +644,77 @@ const PlantDetailPage = () => {
               />
 
               <div className={styles.eventsList}>
-                <h4>
-                  Recent{" "}
-                  {selectedEventType === "All events" ? "" : selectedEventType}{" "}
-                  Events
-                </h4>
+                <div className={styles.eventsListHeader}>
+                  <h4>
+                    {selectedEventType === "All events"
+                      ? ""
+                      : selectedEventType}{" "}
+                    Events List
+                  </h4>
+                  <Dropdown
+                    value={dateRangeFilter}
+                    onChange={setDateRangeFilter}
+                    options={[
+                      { value: "past1month", label: "Past 1 Month" },
+                      { value: "past3months", label: "Past 3 Months" },
+                      { value: "past6months", label: "Past 6 Months" },
+                      { value: "past1year", label: "Past 1 Year" },
+                    ]}
+                    className={styles.dateRangeFilter}
+                    disabled={isLoading || uploading}
+                  />
+                </div>
                 {(() => {
                   const validEvents = getValidEvents(events);
-                  return validEvents.length === 0 ? (
+                  const filteredEvents =
+                    getFilteredEventsByDateRange(validEvents);
+                  return filteredEvents.length === 0 ? (
                     <p className="text-muted">
                       No{" "}
                       {selectedEventType === "All events"
                         ? ""
                         : selectedEventType.toLowerCase()}{" "}
-                      events yet
+                      events in selected date range
                     </p>
                   ) : (
-                    <ul>
-                      {validEvents.slice(0, 5).map((event) => {
-                        const eventTypeObj = eventTypes.find(
-                          (et) => et.name === event.event_type
-                        );
-                        return (
-                          <li key={event.id}>
-                            <div className={styles.eventItem}>
-                              {selectedEventType === "All events" &&
-                                eventTypeObj && (
-                                  <span className={styles.eventTypeEmoji}>
-                                    {eventTypeObj.emoji}
+                    <div className={styles.eventsListScroll}>
+                      <ul>
+                        {filteredEvents.map((event) => {
+                          const eventTypeObj = eventTypes.find(
+                            (et) => et.name === event.event_type
+                          );
+                          return (
+                            <li key={event.id}>
+                              <div className={styles.eventItem}>
+                                {selectedEventType === "All events" &&
+                                  eventTypeObj && (
+                                    <span className={styles.eventTypeEmoji}>
+                                      {eventTypeObj.emoji}
+                                    </span>
+                                  )}
+                                <span className={styles.eventDate}>
+                                  {formatDate(event.event_date)}
+                                </span>
+                                {event.notes && (
+                                  <span className={styles.eventNotes}>
+                                    {event.notes}
                                   </span>
                                 )}
-                              <span className={styles.eventDate}>
-                                {formatDate(event.event_date)}
-                              </span>
-                              {event.notes && (
-                                <span className={styles.eventNotes}>
-                                  {event.notes}
-                                </span>
-                              )}
-                              {selectedEventType !== "All events" && (
-                                <button
-                                  className="btn-icon"
-                                  onClick={() => handleDeleteEvent(event.id!)}
-                                  disabled={isLoading || uploading}
-                                >
-                                  ×
-                                </button>
-                              )}
-                            </div>
-                          </li>
-                        );
-                      })}
-                    </ul>
+                                {selectedEventType !== "All events" && (
+                                  <button
+                                    className="btn-icon"
+                                    onClick={() => handleDeleteEvent(event.id!)}
+                                    disabled={isLoading || uploading}
+                                  >
+                                    ×
+                                  </button>
+                                )}
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
                   );
                 })()}
               </div>
