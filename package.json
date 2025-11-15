@@ -4,7 +4,7 @@
   "description": "A full-stack app for tracking houseplants",
   "scripts": {
     "install-all": "cd backend && npm install && cd ../frontend && npm install",
-    "dev": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm run dev\"",
+    "dev": "concurrently \"cd backend && npm run dev\" \"sleep 2 && cd frontend && npm run dev\"",
     "build": "cd backend && npm run build && cd ../frontend && npm run build",
     "start-backend": "cd backend && npm start",
     "start-frontend": "cd frontend && npm run preview"
