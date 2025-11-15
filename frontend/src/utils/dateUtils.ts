@@ -1,6 +1,6 @@
 import { format, parse } from 'date-fns';
 
-// Format date to "25, Jun 2025" style
+// Format date to "25 Jun 2025" style
 export const formatDate = (dateString: string | undefined | null): string => {
   if (!dateString) return '';
   try {
@@ -8,17 +8,17 @@ export const formatDate = (dateString: string | undefined | null): string => {
     // "2025-11-15" should stay as November 15, not shift to November 14
     const [year, month, day] = dateString.split('T')[0].split('-').map(Number);
     const date = new Date(year, month - 1, day);
-    return format(date, 'dd, MMM yyyy');
+    return format(date, 'dd MMM yyyy');
   } catch {
     return '';
   }
 };
 
-// Parse date from "25, Jun 2025" style
+// Parse date from "25 Jun 2025" style
 export const parseDate = (dateString: string): Date | null => {
   if (!dateString) return null;
   try {
-    return parse(dateString, 'dd, MMM yyyy', new Date());
+    return parse(dateString, 'dd MMM yyyy', new Date());
   } catch {
     return null;
   }
