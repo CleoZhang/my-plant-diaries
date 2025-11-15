@@ -81,7 +81,12 @@ router.post('/', (req: Request, res: Response) => {
 
     db.run(query, params, function(err) {
       if (err) {
-        res.status(500).json({ error: err.message });
+        // Handle unique constraint violation
+        if (err.message && err.message.includes('UNIQUE constraint failed')) {
+          res.status(409).json({ error: 'An event of this type already exists for this plant on this date' });
+        } else {
+          res.status(500).json({ error: err.message });
+        }
         return;
       }
       res.status(201).json({ id: this.lastID, ...event });
@@ -109,7 +114,12 @@ router.put('/:id', (req: Request, res: Response) => {
 
   db.run(query, params, function(err) {
     if (err) {
-      res.status(500).json({ error: err.message });
+      // Handle unique constraint violation
+      if (err.message && err.message.includes('UNIQUE constraint failed')) {
+        res.status(409).json({ error: 'An event of this type already exists for this plant on this date' });
+      } else {
+        res.status(500).json({ error: err.message });
+      }
       return;
     }
     if (this.changes === 0) {

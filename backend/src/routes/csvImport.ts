@@ -150,8 +150,14 @@ router.post('/import', upload.single('csv'), async (req: Request, res: Response)
             if (err) {
               reject(err);
             } else {
-              console.log('Cleared all existing plants');
-              resolve();
+              // Reset the autoincrement counter so IDs start from 1
+              db.run('DELETE FROM sqlite_sequence WHERE name = ?', ['plants'], (err) => {
+                if (err) {
+                  console.warn('Could not reset plant ID sequence:', err);
+                }
+                console.log('Cleared all existing plants and reset ID counter');
+                resolve();
+              });
             }
           });
         });
@@ -266,7 +272,10 @@ router.post('/import', upload.single('csv'), async (req: Request, res: Response)
                 
                 db.run(eventQuery, [this.lastID, lastWaterDate], (eventErr) => {
                   if (eventErr) {
-                    console.warn(`Failed to add water event for plant ${plant.name}:`, eventErr);
+                    // Ignore unique constraint violations (duplicate events)
+                    if (!eventErr.message || !eventErr.message.includes('UNIQUE constraint failed')) {
+                      console.warn(`Failed to add water event for plant ${plant.name}:`, eventErr);
+                    }
                   }
                   resolve();
                 });

@@ -63,6 +63,12 @@ function initializeDatabase() {
       )
     `);
 
+    // Create unique index to prevent duplicate events
+    db.run(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_plant_events_unique 
+      ON plant_events(plant_id, event_type, event_date)
+    `);
+
     // Plant photos table
     db.run(`
       CREATE TABLE IF NOT EXISTS plant_photos (
