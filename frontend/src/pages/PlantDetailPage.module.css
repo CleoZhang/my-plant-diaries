@@ -163,6 +163,50 @@
   box-shadow: var(--shadow-sm);
 }
 
+.photoImageContainer {
+  position: relative;
+}
+
+.photoImageContainer img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  display: block;
+}
+
+.deletePhotoBtn {
+  position: absolute;
+  top: var(--spacing-xs);
+  right: var(--spacing-xs);
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+  opacity: 0;
+  width: 28px;
+  height: 28px;
+  box-shadow: var(--shadow-sm);
+}
+
+.photoItem:hover .deletePhotoBtn {
+  opacity: 1;
+}
+
+.deletePhotoBtn:hover {
+  background: rgba(255, 0, 0, 0.1);
+  transform: scale(1.1);
+}
+
+.deletePhotoBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
 .photoItem img {
   width: 100%;
   height: 150px;
@@ -536,6 +580,306 @@
   display: none;
 }
 
+/* Photo Viewer Modal */
+.photoViewerOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.photoViewerModal {
+  position: relative;
+  width: 90vw;
+  height: 90vh;
+  max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+}
+
+.closeViewerBtn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  font-size: 2.5rem;
+  cursor: pointer;
+  color: var(--text-primary);
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: var(--transition);
+  z-index: 10;
+}
+
+.closeViewerBtn:hover {
+  background: white;
+  transform: scale(1.1);
+}
+
+.deleteViewerPhotoBtn {
+  position: absolute;
+  top: 20px;
+  right: 90px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  cursor: pointer;
+  color: var(--text-primary);
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: var(--transition);
+  z-index: 10;
+  padding: 12px;
+}
+
+.deleteViewerPhotoBtn:hover {
+  background: rgba(255, 0, 0, 0.1);
+  transform: scale(1.1);
+}
+
+.deleteViewerPhotoBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.prevPhotoBtn,
+.nextPhotoBtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  font-size: 3rem;
+  cursor: pointer;
+  color: var(--text-primary);
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: var(--transition);
+  z-index: 10;
+}
+
+.prevPhotoBtn {
+  left: 20px;
+}
+
+.nextPhotoBtn {
+  right: 20px;
+}
+
+.prevPhotoBtn:hover,
+.nextPhotoBtn:hover {
+  background: white;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.prevPhotoBtn:disabled,
+.nextPhotoBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.prevPhotoBtn:disabled:hover,
+.nextPhotoBtn:disabled:hover {
+  transform: translateY(-50%);
+}
+
+.photoViewerContent {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: var(--spacing-lg);
+}
+
+.mainPhotoContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 100px;
+}
+
+.photoContentWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.mainPhoto {
+  max-width: 100%;
+  max-height: calc(90vh - 200px);
+  object-fit: contain;
+  border-radius: var(--radius-md);
+}
+
+.viewerCaption {
+  color: white;
+  font-size: 1.125rem;
+  text-align: center;
+  margin: 0;
+}
+
+.viewerPhotoDate {
+  color: white;
+  font-size: 1rem;
+  display: flex;
+  justify-content: center;
+}
+
+.viewerDateDisplay {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  background: rgba(255, 255, 255, 0.1);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-md);
+}
+
+.viewerEditDateBtn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  cursor: pointer;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  color: white;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+}
+
+.viewerEditDateBtn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.viewerDateEditor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  background: rgba(255, 255, 255, 0.95);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+}
+
+.viewerDateEditor input[type="date"] {
+  padding: var(--spacing-sm);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+}
+
+.dateEditorButtons {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.saveBtn,
+.cancelBtn {
+  flex: 1;
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 0.875rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition);
+  border: none;
+}
+
+.saveBtn {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.saveBtn:hover {
+  background-color: var(--primary-dark);
+}
+
+.cancelBtn {
+  background-color: var(--surface);
+  border: 1px solid var(--border-color);
+}
+
+.cancelBtn:hover {
+  background-color: var(--border-color);
+}
+
+.thumbnailStrip {
+  display: flex;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+  justify-content: center;
+  max-height: 120px;
+}
+
+.thumbnailStrip::-webkit-scrollbar {
+  height: 8px;
+}
+
+.thumbnailStrip::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-sm);
+}
+
+.thumbnailStrip::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-sm);
+}
+
+.thumbnailStrip::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.thumbnail {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  cursor: pointer;
+  border: 3px solid transparent;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+
+.thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumbnail:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.05);
+}
+
+.activeThumbnail {
+  border-color: white;
+}
+
+.activeThumbnail:hover {
+  border-color: white;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .plantDetailLayout {
@@ -807,6 +1151,123 @@
   }
 
   .photoGrid {
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+
+  .photoItem {
+    overflow: visible;
+  }
+
+  .photoImageContainer img {
+    height: 120px;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+  }
+
+  .deletePhotoBtn {
+    opacity: 1;
+    width: 24px;
+    height: 24px;
+    padding: 4px;
+    top: 4px;
+    right: 4px;
+  }
+
+  .photoItem img {
+    height: 120px;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+  }
+
+  .photoDate {
+    font-size: 0.7rem;
+    padding: var(--spacing-xs);
+    background: white;
+  }
+
+  .dateDisplay span {
+    font-size: 0.65rem;
+  }
+
+  .editDateBtn {
+    font-size: 0.7rem;
+    padding: 1px 2px;
+  }
+
+  /* Photo Viewer Mobile Adjustments */
+  .photoViewerModal {
+    width: 100vw;
+    height: 100vh;
+    padding: 60px 0 20px 0;
+  }
+
+  .closeViewerBtn {
+    top: 5px;
+    right: 5px;
+    width: 36px;
+    height: 36px;
+    font-size: 1.75rem;
+  }
+
+  .deleteViewerPhotoBtn {
+    top: 5px;
+    right: 50px;
+    width: 36px;
+    height: 36px;
+    padding: 8px;
+  }
+
+  .prevPhotoBtn,
+  .nextPhotoBtn {
+    width: 40px;
+    height: 40px;
+    font-size: 1.75rem;
+  }
+
+  .prevPhotoBtn {
+    left: 5px;
+  }
+
+  .nextPhotoBtn {
+    right: 5px;
+  }
+
+  .mainPhotoContainer {
+    padding: 0 50px;
+    gap: var(--spacing-xs);
+  }
+
+  .mainPhoto {
+    max-height: calc(100vh - 200px);
+    max-width: calc(100vw - 100px);
+  }
+
+  .viewerCaption {
+    font-size: 0.8rem;
+    padding: 0 var(--spacing-sm);
+    max-width: 90%;
+  }
+
+  .viewerPhotoDate {
+    font-size: 0.75rem;
+  }
+
+  .viewerDateDisplay {
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+
+  .thumbnailStrip {
+    max-height: 70px;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    gap: var(--spacing-xs);
+  }
+
+  .thumbnail {
+    width: 55px;
+    height: 55px;
+  }
+
+  .photoViewerContent {
+    gap: var(--spacing-sm);
+    height: 100%;
+    padding: var(--spacing-xs) 0;
   }
 }

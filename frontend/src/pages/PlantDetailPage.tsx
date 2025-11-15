@@ -44,6 +44,11 @@ const PlantDetailPage = () => {
   const [showMobilePhotoGalleryModal, setShowMobilePhotoGalleryModal] =
     useState(false);
   const [dateRangeFilter, setDateRangeFilter] = useState<string>("past3months");
+  const [showPhotoViewer, setShowPhotoViewer] = useState(false);
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [isClosingViewer, setIsClosingViewer] = useState(false);
   const { modalState, showAlert, showConfirm, closeModal } = useModal();
   const { isLoading, startLoading, stopLoading } = useLoading();
 
@@ -255,6 +260,108 @@ const PlantDetailPage = () => {
   const handleCancelEditPhotoDate = () => {
     setEditingPhotoId(null);
     setEditingPhotoDate("");
+  };
+
+  const handleDeletePhoto = async (photoId: number) => {
+    showConfirm(
+      "Are you sure you want to delete this photo? This action cannot be undone.",
+      async () => {
+        startLoading();
+        try {
+          await photosAPI.delete(photoId);
+          if (id) {
+            const photosRes = await photosAPI.getByPlantId(parseInt(id));
+            const sortedPhotos = [...photosRes.data].sort((a, b) => {
+              if (!a.taken_at) return 1;
+              if (!b.taken_at) return -1;
+              return (
+                new Date(b.taken_at).getTime() - new Date(a.taken_at).getTime()
+              );
+            });
+            setPhotos(sortedPhotos);
+
+            // If we deleted the current photo in viewer and it was the last one, close viewer
+            if (sortedPhotos.length === 0 && showPhotoViewer) {
+              setShowPhotoViewer(false);
+            }
+            // If we deleted the current photo in viewer, adjust index
+            else if (
+              showPhotoViewer &&
+              currentPhotoIndex >= sortedPhotos.length
+            ) {
+              setCurrentPhotoIndex(sortedPhotos.length - 1);
+            }
+          }
+        } catch (err) {
+          showAlert("Failed to delete photo", "Error");
+        } finally {
+          stopLoading();
+        }
+      },
+      "Delete Photo"
+    );
+  };
+
+  const handlePhotoClick = (index: number) => {
+    if (isClosingViewer) return;
+    setCurrentPhotoIndex(index);
+    setShowPhotoViewer(true);
+  };
+
+  const handleClosePhotoViewer = (e?: React.MouseEvent | React.TouchEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    setIsClosingViewer(true);
+    setShowPhotoViewer(false);
+    setEditingPhotoId(null);
+    setEditingPhotoDate("");
+    setTimeout(() => {
+      setIsClosingViewer(false);
+    }, 300);
+  };
+
+  const handlePreviousPhoto = () => {
+    setCurrentPhotoIndex((prev) => (prev > 0 ? prev - 1 : photos.length - 1));
+    setEditingPhotoId(null);
+    setEditingPhotoDate("");
+  };
+
+  const handleNextPhoto = () => {
+    setCurrentPhotoIndex((prev) => (prev < photos.length - 1 ? prev + 1 : 0));
+    setEditingPhotoId(null);
+    setEditingPhotoDate("");
+  };
+
+  const handleThumbnailClick = (index: number) => {
+    setCurrentPhotoIndex(index);
+    setEditingPhotoId(null);
+    setEditingPhotoDate("");
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe && photos.length > 1) {
+      handleNextPhoto();
+    }
+    if (isRightSwipe && photos.length > 1) {
+      handlePreviousPhoto();
+    }
   };
 
   const handleDeletePlant = async () => {
@@ -510,12 +617,27 @@ const PlantDetailPage = () => {
                   </div>
 
                   <div className={styles.photoGrid}>
-                    {photos.map((photo) => (
+                    {photos.map((photo, index) => (
                       <div key={photo.id} className={styles.photoItem}>
-                        <img
-                          src={photo.photo_path}
-                          alt={photo.caption || "Plant photo"}
-                        />
+                        <div className={styles.photoImageContainer}>
+                          <img
+                            src={photo.photo_path}
+                            alt={photo.caption || "Plant photo"}
+                            onClick={() => handlePhotoClick(index)}
+                            style={{ cursor: "pointer" }}
+                          />
+                          <button
+                            className={styles.deletePhotoBtn}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeletePhoto(photo.id!);
+                            }}
+                            title="Delete photo"
+                            disabled={isLoading || uploading}
+                          >
+                            <TrashIcon />
+                          </button>
+                        </div>
                         {photo.caption && (
                           <p className={styles.photoCaption}>{photo.caption}</p>
                         )}
@@ -893,12 +1015,27 @@ const PlantDetailPage = () => {
               </div>
 
               <div className={styles.photoGrid}>
-                {photos.map((photo) => (
+                {photos.map((photo, index) => (
                   <div key={photo.id} className={styles.photoItem}>
-                    <img
-                      src={photo.photo_path}
-                      alt={photo.caption || "Plant photo"}
-                    />
+                    <div className={styles.photoImageContainer}>
+                      <img
+                        src={photo.photo_path}
+                        alt={photo.caption || "Plant photo"}
+                        onClick={() => handlePhotoClick(index)}
+                        style={{ cursor: "pointer" }}
+                      />
+                      <button
+                        className={styles.deletePhotoBtn}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeletePhoto(photo.id!);
+                        }}
+                        title="Delete photo"
+                        disabled={isLoading || uploading}
+                      >
+                        <TrashIcon />
+                      </button>
+                    </div>
                     {photo.caption && (
                       <p className={styles.photoCaption}>{photo.caption}</p>
                     )}
@@ -966,6 +1103,157 @@ const PlantDetailPage = () => {
             <TrashIcon /> Delete Plant
           </button>
         </div>
+
+        {/* Photo Viewer Modal */}
+        {showPhotoViewer && photos.length > 0 && (
+          <div
+            className={styles.photoViewerOverlay}
+            onClick={(e) => handleClosePhotoViewer(e)}
+            onTouchEnd={(e) => handleClosePhotoViewer(e)}
+          >
+            <div
+              className={styles.photoViewerModal}
+              onClick={(e) => e.stopPropagation()}
+              onTouchEnd={(e) => e.stopPropagation()}
+            >
+              <button
+                className={styles.closeViewerBtn}
+                onClick={(e) => handleClosePhotoViewer(e)}
+              >
+                ×
+              </button>
+
+              <button
+                className={styles.deleteViewerPhotoBtn}
+                onClick={() => handleDeletePhoto(photos[currentPhotoIndex].id!)}
+                title="Delete photo"
+                disabled={isLoading || uploading}
+              >
+                <TrashIcon />
+              </button>
+
+              <button
+                className={styles.prevPhotoBtn}
+                onClick={handlePreviousPhoto}
+                disabled={photos.length <= 1}
+              >
+                ‹
+              </button>
+
+              <button
+                className={styles.nextPhotoBtn}
+                onClick={handleNextPhoto}
+                disabled={photos.length <= 1}
+              >
+                ›
+              </button>
+
+              <div className={styles.photoViewerContent}>
+                <div
+                  className={styles.mainPhotoContainer}
+                  onClick={(e) => handleClosePhotoViewer(e)}
+                  onTouchEnd={(e) => {
+                    if (e.target === e.currentTarget) {
+                      handleClosePhotoViewer(e);
+                    }
+                  }}
+                >
+                  <div
+                    className={styles.photoContentWrapper}
+                    onTouchStart={handleTouchStart}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <img
+                      src={photos[currentPhotoIndex].photo_path}
+                      alt={photos[currentPhotoIndex].caption || "Plant photo"}
+                      className={styles.mainPhoto}
+                    />
+                    {photos[currentPhotoIndex].caption && (
+                      <p className={styles.viewerCaption}>
+                        {photos[currentPhotoIndex].caption}
+                      </p>
+                    )}
+                    {photos[currentPhotoIndex].taken_at && (
+                      <div className={styles.viewerPhotoDate}>
+                        {editingPhotoId === photos[currentPhotoIndex].id ? (
+                          <div className={styles.viewerDateEditor}>
+                            <input
+                              type="date"
+                              value={editingPhotoDate}
+                              onChange={(e) =>
+                                setEditingPhotoDate(e.target.value)
+                              }
+                            />
+                            <div className={styles.dateEditorButtons}>
+                              <button
+                                onClick={() =>
+                                  handleSavePhotoDate(
+                                    photos[currentPhotoIndex].id!
+                                  )
+                                }
+                                disabled={isLoading}
+                                className={styles.saveBtn}
+                              >
+                                Save
+                              </button>
+                              <button
+                                onClick={handleCancelEditPhotoDate}
+                                disabled={isLoading}
+                                className={styles.cancelBtn}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className={styles.viewerDateDisplay}>
+                            <span>
+                              {formatDate(photos[currentPhotoIndex].taken_at)}
+                            </span>
+                            <button
+                              className={styles.viewerEditDateBtn}
+                              onClick={() =>
+                                handleEditPhotoDate(
+                                  photos[currentPhotoIndex].id!,
+                                  photos[currentPhotoIndex].taken_at!
+                                )
+                              }
+                              title="Edit date"
+                              disabled={isLoading || uploading}
+                            >
+                              <EditIcon />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className={styles.thumbnailStrip}>
+                  {photos.map((photo, index) => (
+                    <div
+                      key={photo.id}
+                      className={`${styles.thumbnail} ${
+                        index === currentPhotoIndex
+                          ? styles.activeThumbnail
+                          : ""
+                      }`}
+                      onClick={() => handleThumbnailClick(index)}
+                    >
+                      <img
+                        src={photo.photo_path}
+                        alt={photo.caption || "Thumbnail"}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <Modal
           isOpen={modalState.isOpen}
