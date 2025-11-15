@@ -4,7 +4,10 @@ import { format, parse } from 'date-fns';
 export const formatDate = (dateString: string | undefined | null): string => {
   if (!dateString) return '';
   try {
-    const date = new Date(dateString);
+    // Parse ISO date string in local timezone to avoid timezone conversion issues
+    // "2025-11-15" should stay as November 15, not shift to November 14
+    const [year, month, day] = dateString.split('T')[0].split('-').map(Number);
+    const date = new Date(year, month - 1, day);
     return format(date, 'dd, MMM yyyy');
   } catch {
     return '';
@@ -24,7 +27,11 @@ export const parseDate = (dateString: string): Date | null => {
 // Format date to ISO string for storage
 export const toISODate = (date: Date | null): string => {
   if (!date) return '';
-  return date.toISOString().split('T')[0];
+  // Use local date components to avoid timezone conversion issues
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 
 // Get days since last watered
